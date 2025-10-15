@@ -1,7 +1,9 @@
+// FIX: Import React and dependencies via ES modules.
 import React from 'react';
-import type { GameState } from '../types.ts';
-import CloseIcon from './icons/CloseIcon.tsx';
+import { CloseIcon } from './icons/CloseIcon';
+import type { GameState } from '../types';
 
+// FIX: Add an interface for the component's props.
 interface WinModalProps {
   gameState: GameState;
   title: string;
@@ -11,7 +13,7 @@ interface WinModalProps {
   onClose: () => void;
 }
 
-const WinModal: React.FC<WinModalProps> = ({ gameState, title, url, guessCount, onPlayAgain, onClose }) => {
+export const WinModal: React.FC<WinModalProps> = ({ gameState, title, url, guessCount, onPlayAgain, onClose }) => {
   if (gameState !== 'WON' && gameState !== 'REVEALED') return null;
 
   const isWin = gameState === 'WON';
@@ -55,5 +57,3 @@ const WinModal: React.FC<WinModalProps> = ({ gameState, title, url, guessCount, 
     </div>
   );
 };
-
-export default WinModal;

@@ -1,5 +1,7 @@
+// FIX: Import React for component creation.
 import React from 'react';
 
+// FIX: Add an interface for the component's props.
 interface GameInfoPanelProps {
   guessCount: number;
   onNewGame: () => void;
@@ -7,7 +9,7 @@ interface GameInfoPanelProps {
   disabled: boolean;
 }
 
-const GameInfoPanel: React.FC<GameInfoPanelProps> = ({ 
+export const GameInfoPanel: React.FC<GameInfoPanelProps> = ({ 
   guessCount,
   onNewGame, 
   onReveal,
@@ -44,5 +46,3 @@ const GameInfoPanel: React.FC<GameInfoPanelProps> = ({
     </div>
   );
 };
-
-export default GameInfoPanel;

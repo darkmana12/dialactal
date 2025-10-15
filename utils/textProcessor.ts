@@ -1,12 +1,15 @@
-import type { ProcessedWord } from '../types.ts';
-import { COMMON_WORDS } from '../constants.ts';
+// FIX: Import dependencies using ES modules.
+import { COMMON_WORDS } from '../constants';
+import type { ProcessedWord } from '../types';
 
 /**
  * Normalizes a word by converting to lowercase and removing non-alphanumeric characters.
  * @param word The word to normalize.
  * @returns The normalized word.
  */
+// FIX: Export function and add types.
 export function normalizeWord(word: string): string {
+  if (!word) return '';
   return word.toLowerCase().replace(/[^a-z0-9à-ÿ-]/g, '');
 }
 
@@ -16,6 +19,7 @@ export function normalizeWord(word: string): string {
  * @param content The raw string content of the article.
  * @returns An array of ProcessedWord objects.
  */
+// FIX: Export function and add types.
 export function processArticleContent(content: string): ProcessedWord[] {
   const regex = /([a-zA-Z0-9à-ÿ'-]+)|([.,;:?!()"’“”—–…«»\s]+)/g;
   const parts = content.match(regex) || [];
@@ -33,7 +37,6 @@ export function processArticleContent(content: string): ProcessedWord[] {
       original: part,
       hidden: !isCommon,
       isPunctuation: false,
-      isCloseGuess: false,
     };
   });
 }

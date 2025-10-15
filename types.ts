@@ -1,3 +1,4 @@
+// FIX: Export interfaces and types to be used across the application.
 export interface ProcessedWord {
   original: string;
   hidden: boolean;

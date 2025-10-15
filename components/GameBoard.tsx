@@ -1,14 +1,16 @@
+// FIX: Import React and dependencies using ES modules.
 import React from 'react';
-import type { ProcessedWord, GuessedWord } from '../types.ts';
-import { normalizeWord } from '../utils/textProcessor.ts';
+import { normalizeWord } from '../utils/textProcessor';
+import type { ProcessedWord, GuessedWord } from '../types';
 
+// FIX: Add explicit prop types for the component.
 interface GameBoardProps {
   content: ProcessedWord[];
   title: string;
   guessedWords: Map<string, GuessedWord>;
 }
 
-const GameBoard: React.FC<GameBoardProps> = ({ content, title, guessedWords }) => {
+export const GameBoard: React.FC<GameBoardProps> = ({ content, title, guessedWords }) => {
   return (
     <div className="text-lg leading-relaxed bg-white p-4 sm:p-6 rounded-2xl whitespace-pre-wrap border-2 border-brand-border h-full overflow-y-auto">
       {/* Title display */}
@@ -16,7 +18,7 @@ const GameBoard: React.FC<GameBoardProps> = ({ content, title, guessedWords }) =
         <div className="flex items-center justify-center flex-wrap gap-x-2 gap-y-1">
           {title.split(' ').map((word, index) => {
             const normalized = normalizeWord(word);
-            const isFound = guessedWords.has(normalized) && guessedWords.get(normalized)!.found;
+            const isFound = guessedWords.has(normalized) && guessedWords.get(normalized)?.found;
 
             if (isFound) {
               return (
@@ -76,5 +78,3 @@ const GameBoard: React.FC<GameBoardProps> = ({ content, title, guessedWords }) =
     </div>
   );
 };
-
-export default GameBoard;

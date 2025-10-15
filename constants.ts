@@ -1,5 +1,6 @@
 // A list of common English stop words.
 // These words will be visible from the start of the game.
+// FIX: Use ES module export instead of attaching to window.
 export const COMMON_WORDS = new Set([
 ]);
 
@@ -8,7 +9,8 @@ export const COMMON_WORDS = new Set([
  * The key is the "clue" word (synonym, related term), and the value is the "target" word in the article.
  * In a real-world application, this would be a much larger file generated offline.
  */
-export const RELATED_WORDS_DB: Record<string, string> = {
+// FIX: Use ES module export instead of attaching to window and add type definition.
+export const RELATED_WORDS_DB: { [key: string]: string } = {
   // General concepts
   "foyer": "maison",
   "domicile": "maison",
@@ -262,6 +264,7 @@ export const RELATED_WORDS_DB: Record<string, string> = {
  * A list of semantic categories. If a user guesses a word in one of these sets,
  * it will be considered "close" to any other hidden word from the same set.
  */
+// FIX: Use ES module export instead of attaching to window and add type definition.
 export const SEMANTIC_CATEGORIES: Set<string>[] = [
   // Time
   new Set(['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre']),

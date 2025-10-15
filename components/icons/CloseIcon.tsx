@@ -1,6 +1,7 @@
+// FIX: Import React for creating a component.
 import React from 'react';
 
-const CloseIcon: React.FC = () => (
+export const CloseIcon = () => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
     className="h-6 w-6"
@@ -16,5 +17,3 @@ const CloseIcon: React.FC = () => (
     />
   </svg>
 );
-
-export default CloseIcon;

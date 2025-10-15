@@ -1,14 +1,16 @@
+// FIX: Import React and useState from the 'react' package.
 import React, { useState } from 'react';
 
+// FIX: Add an interface for the component's props for type safety.
 interface GuessInputProps {
   onGuess: (guess: string) => void;
   disabled: boolean;
 }
 
-const GuessInput: React.FC<GuessInputProps> = ({ onGuess, disabled }) => {
+export const GuessInput: React.FC<GuessInputProps> = ({ onGuess, disabled }) => {
   const [inputValue, setInputValue] = useState('');
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (inputValue.trim() && !disabled) {
       onGuess(inputValue.trim());
@@ -42,5 +44,3 @@ const GuessInput: React.FC<GuessInputProps> = ({ onGuess, disabled }) => {
     </form>
   );
 };
-
-export default GuessInput;

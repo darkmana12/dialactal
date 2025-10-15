@@ -1,4 +1,5 @@
-import type { WikipediaArticle } from '../types.ts';
+// FIX: Import types using ES modules.
+import type { WikipediaArticle } from '../types';
 
 const API_BASE_URL = 'https://fr.wikipedia.org/api/rest_v1';
 const WIKI_ACTION_API_URL = 'https://fr.wikipedia.org/w/api.php';
@@ -31,7 +32,7 @@ async function fetchAndParseArticleContent(title: string): Promise<string> {
   // Use the main content wrapper if available, otherwise fallback to the body
   const nodesSource = contentWrapper || doc.body;
 
-  let introParagraphs: HTMLParagraphElement[] = [];
+  let introParagraphs: HTMLElement[] = [];
   
   // Iterate through child nodes to find paragraphs before the first section heading (H2)
   for (const node of Array.from(nodesSource.childNodes)) {
@@ -40,7 +41,7 @@ async function fetchAndParseArticleContent(title: string): Promise<string> {
     }
     
     if (node.nodeName === 'P' && node.textContent?.trim()) {
-      introParagraphs.push(node as HTMLParagraphElement);
+      introParagraphs.push(node as HTMLElement);
     }
   }
 
@@ -100,7 +101,7 @@ async function isArticlePopular(title: string): Promise<boolean> {
       return false; // No data returned
     }
 
-    const totalViews = data.items.reduce((sum: number, item: any) => sum + item.views, 0);
+    const totalViews = data.items.reduce((sum: number, item: { views: number }) => sum + item.views, 0);
     
     console.log(`Article "${title}" has ${totalViews} user views in the last 30 days.`);
     return totalViews >= POPULARITY_THRESHOLD;
@@ -116,6 +117,7 @@ async function isArticlePopular(title: string): Promise<boolean> {
 }
 
 // Fetches a random article by getting a batch of titles and picking the first suitable one. This will loop indefinitely until a suitable article is found.
+// FIX: Export the function and add a return type.
 export async function fetchRandomArticle(): Promise<WikipediaArticle> {
   let attempt = 1;
   while (true) {
@@ -130,7 +132,7 @@ export async function fetchRandomArticle(): Promise<WikipediaArticle> {
         continue;
       }
       const randomListData = await randomListResponse.json();
-      const randomTitles = randomListData.query.random.map((item: any) => item.title);
+      const randomTitles = randomListData.query.random.map((item: { title: string }) => item.title);
 
       // 2. Iterate through the list and find the first suitable article
       for (const title of randomTitles) {

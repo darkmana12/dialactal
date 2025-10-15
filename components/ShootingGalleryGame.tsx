@@ -1,13 +1,8 @@
+// FIX: Import React and hooks using ES modules.
 import React, { useState, useEffect, useCallback } from 'react';
 
-interface Target {
-  id: number;
-  x: number;
-  y: number;
-}
-
-const ShootingGalleryGame: React.FC = () => {
-  const [targets, setTargets] = useState<Target[]>([]);
+export const ShootingGalleryGame = () => {
+  const [targets, setTargets] = useState<{ id: number; x: number; y: number; }[]>([]);
   const [score, setScore] = useState(0);
 
   useEffect(() => {
@@ -17,7 +12,7 @@ const ShootingGalleryGame: React.FC = () => {
           // Limit the number of targets on screen
           return prevTargets;
         }
-        const newTarget: Target = {
+        const newTarget = {
           id: Date.now(),
           x: Math.random() * 90, // % from left, 90 to keep it within bounds
           y: Math.random() * 90, // % from top
@@ -59,5 +54,3 @@ const ShootingGalleryGame: React.FC = () => {
     </div>
   );
 };
-
-export default ShootingGalleryGame;

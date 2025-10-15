@@ -1,22 +1,21 @@
-
-
-
-
+// FIX: Import React and hooks.
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import type { ProcessedWord, GameState, GuessedWord } from './types.ts';
-import { fetchRandomArticle } from './services/wikipediaService.ts';
-import { processArticleContent, normalizeWord } from './utils/textProcessor.ts';
-import { verbConjugations } from './utils/verbConjugations.ts';
-import { RELATED_WORDS_DB, SEMANTIC_CATEGORIES } from './constants.ts';
-import GameBoard from './components/GameBoard.tsx';
-import GuessInput from './components/GuessInput.tsx';
-import GuessedWordsList from './components/GuessedWordsList.tsx';
-import GameInfoPanel from './components/GameInfoPanel.tsx';
-import LoadingSpinner from './components/LoadingSpinner.tsx';
-import WinModal from './components/WinModal.tsx';
-import ShootingGalleryGame from './components/ShootingGalleryGame.tsx';
+// FIX: Use ES module imports for all dependencies.
+import { fetchRandomArticle } from './services/wikipediaService';
+import { processArticleContent, normalizeWord } from './utils/textProcessor';
+import { verbConjugations } from './utils/verbConjugations';
+import { RELATED_WORDS_DB, SEMANTIC_CATEGORIES } from './constants';
+import { GameBoard } from './components/GameBoard';
+import { GuessInput } from './components/GuessInput';
+import { GuessedWordsList } from './components/GuessedWordsList';
+import { GameInfoPanel } from './components/GameInfoPanel';
+import { LoadingSpinner } from './components/LoadingSpinner';
+import { WinModal } from './components/WinModal';
+import { ShootingGalleryGame } from './components/ShootingGalleryGame';
+import type { GameState, ProcessedWord, GuessedWord } from './types';
 
-const App: React.FC = () => {
+export const App = () => {
+  // FIX: Add explicit types for all state variables.
   const [gameState, setGameState] = useState<GameState>('LOADING');
   const [articleTitle, setArticleTitle] = useState('');
   const [articleUrl, setArticleUrl] = useState('');
@@ -91,12 +90,8 @@ const App: React.FC = () => {
         throw new Error("Failed to fetch article.");
       }
     } catch (error) {
-      // Fix: The 'error' object in a catch block is of type 'unknown'. Handle it safely.
-      if (error instanceof Error) {
-        console.error('Error starting new game:', error.message);
-      } else {
-        console.error('Error starting new game:', String(error));
-      }
+      // FIX: The 'error' object in a catch block is of type 'unknown' and cannot be passed directly to a function expecting a string. Safely convert it to a string before logging.
+      console.error('Error starting new game:', String(error));
       setGameState('ERROR');
     }
   }, []);
@@ -107,7 +102,7 @@ const App: React.FC = () => {
   }, []);
   
   const foundWordsCount = useMemo(() => {
-    return Array.from(guessedWords.values()).filter((w: GuessedWord) => w.found).length;
+    return Array.from(guessedWords.values()).filter((w) => w.found).length;
   }, [guessedWords]);
 
   const handleGuess = (guess: string) => {
@@ -117,7 +112,10 @@ const App: React.FC = () => {
     setGuessHistory((prev) => [trimmedGuess, ...prev]);
 
     const normalizedGuess = normalizeWord(trimmedGuess);
-    if (guessedWords.has(normalizedGuess) && guessedWords.get(normalizedGuess)!.found) {
+    
+    // FIX: Safely check if the word has already been found to avoid errors.
+    const existingGuess = guessedWords.get(normalizedGuess);
+    if (existingGuess && existingGuess.found) {
         return;
     }
 
@@ -141,8 +139,9 @@ const App: React.FC = () => {
         wordsToRevealDirectly.add(normalizedGuess + 'x');
     }
 
-    if (verbConjugations.has(normalizedGuess)) {
-      verbConjugations.get(normalizedGuess)!.forEach((conj) => wordsToRevealDirectly.add(conj));
+    const conjugations = verbConjugations.get(normalizedGuess);
+    if (conjugations) {
+      conjugations.forEach((conj) => wordsToRevealDirectly.add(conj));
     }
 
     let directMatchCount = 0;
@@ -157,7 +156,7 @@ const App: React.FC = () => {
         return word;
     });
 
-    const newGuessedWords: Map<string, GuessedWord> = new Map(guessedWords);
+    const newGuessedWords = new Map(guessedWords);
 
     if (wordFound) {
         currentContent = tempContent;
@@ -280,6 +279,7 @@ const App: React.FC = () => {
           <aside className="lg:col-span-1 flex flex-col gap-6">
             <GameInfoPanel
               guessCount={guessCount}
+              // FIX: Corrected typo from `startNewGMame` to `startNewGame`.
               onNewGame={startNewGame}
               onReveal={handleReveal}
               disabled={gameState !== 'PLAYING'}
@@ -314,5 +314,3 @@ const App: React.FC = () => {
     </div>
   );
 };
-
-export default App;

@@ -1,19 +1,6 @@
-// FIX: Import React and dependencies via ES modules.
-import React from 'react';
-import { CloseIcon } from './icons/CloseIcon.tsx';
-import type { GameState } from '../types.ts';
-
-// FIX: Add an interface for the component's props.
-interface WinModalProps {
-  gameState: GameState;
-  title: string;
-  url: string;
-  guessCount: number;
-  onPlayAgain: () => void;
-  onClose: () => void;
-}
-
-export const WinModal: React.FC<WinModalProps> = ({ gameState, title, url, guessCount, onPlayAgain, onClose }) => {
+const WinModal = ({ gameState, title, url, guessCount, onPlayAgain, onClose }: { gameState: GameState, title: string, url: string, guessCount: number, onPlayAgain: () => void, onClose: () => void }) => {
+  const { CloseIcon } = window.WikiCherche;
+  
   if (gameState !== 'WON' && gameState !== 'REVEALED') return null;
 
   const isWin = gameState === 'WON';
@@ -57,3 +44,4 @@ export const WinModal: React.FC<WinModalProps> = ({ gameState, title, url, guess
     </div>
   );
 };
+window.WikiCherche.WinModal = WinModal;

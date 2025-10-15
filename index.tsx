@@ -1,8 +1,7 @@
-// FIX: Import React and ReactDOM from their respective packages.
-import React from 'react';
-import ReactDOM from 'react-dom/client';
-// FIX: Import the App component using ES modules.
-import { App } from './App.tsx';
+// Fix: Add React and ReactDOM from window to scope to fix undefined errors.
+const { React, ReactDOM } = window;
+
+const { App } = window.WikiCherche;
 
 const rootElement = document.getElementById('root');
 if (!rootElement) {

@@ -1,42 +1,35 @@
-// FIX: Import dependencies using ES modules.
-import { COMMON_WORDS } from '../constants.ts';
-import type { ProcessedWord } from '../types.ts';
+const textProcessor = () => {
+  const { COMMON_WORDS } = window.WikiCherche;
 
-/**
- * Normalizes a word by converting to lowercase and removing non-alphanumeric characters.
- * @param word The word to normalize.
- * @returns The normalized word.
- */
-// FIX: Export function and add types.
-export function normalizeWord(word: string): string {
-  if (!word) return '';
-  return word.toLowerCase().replace(/[^a-z0-9à-ÿ-]/g, '');
-}
+  // Fix: Added type annotations for parameter and return value.
+  function normalizeWord(word: string): string {
+    if (!word) return '';
+    return word.toLowerCase().replace(/[^a-z0-9à-ÿ-]/g, '');
+  }
 
-/**
- * Processes the raw text content of a Wikipedia article into a structure for the game board.
- * It splits text into words and punctuation, and determines which words should be initially hidden.
- * @param content The raw string content of the article.
- * @returns An array of ProcessedWord objects.
- */
-// FIX: Export function and add types.
-export function processArticleContent(content: string): ProcessedWord[] {
-  const regex = /([a-zA-Z0-9à-ÿ'-]+)|([.,;:?!()"’“”—–…«»\s]+)/g;
-  const parts = content.match(regex) || [];
+  // Fix: Added type annotations for parameter and return value.
+  function processArticleContent(content: string): ProcessedWord[] {
+    const regex = /([a-zA-Z0-9à-ÿ'-]+)|([.,;:?!()"’“”—–…«»\s]+)/g;
+    const parts = content.match(regex) || [];
 
-  return parts.map(part => {
-    const isPunctuationOrSpace = !/[a-zA-Z0-9à-ÿ'-]/.test(part[0]);
-    if (isPunctuationOrSpace) {
-      return { original: part, hidden: false, isPunctuation: true };
-    }
-    
-    const normalized = normalizeWord(part);
-    const isCommon = COMMON_WORDS.has(normalized);
-    
-    return {
-      original: part,
-      hidden: !isCommon,
-      isPunctuation: false,
-    };
-  });
-}
+    return parts.map(part => {
+      const isPunctuationOrSpace = !/[a-zA-Z0-9à-ÿ'-]/.test(part[0]);
+      if (isPunctuationOrSpace) {
+        return { original: part, hidden: false, isPunctuation: true };
+      }
+      
+      const normalized = normalizeWord(part);
+      const isCommon = COMMON_WORDS.has(normalized);
+      
+      return {
+        original: part,
+        hidden: !isCommon,
+        isPunctuation: false,
+      };
+    });
+  }
+
+  window.WikiCherche.normalizeWord = normalizeWord;
+  window.WikiCherche.processArticleContent = processArticleContent;
+};
+textProcessor();

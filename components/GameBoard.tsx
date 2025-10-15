@@ -1,16 +1,6 @@
-// FIX: Import React and dependencies using ES modules.
-import React from 'react';
-import { normalizeWord } from '../utils/textProcessor.ts';
-import type { ProcessedWord, GuessedWord } from '../types.ts';
-
-// FIX: Add explicit prop types for the component.
-interface GameBoardProps {
-  content: ProcessedWord[];
-  title: string;
-  guessedWords: Map<string, GuessedWord>;
-}
-
-export const GameBoard: React.FC<GameBoardProps> = ({ content, title, guessedWords }) => {
+const GameBoard = ({ content, title, guessedWords }: { content: ProcessedWord[], title: string, guessedWords: Map<string, GuessedWord> }) => {
+  const { normalizeWord } = window.WikiCherche;
+  
   return (
     <div className="text-lg leading-relaxed bg-white p-4 sm:p-6 rounded-2xl whitespace-pre-wrap border-2 border-brand-border h-full overflow-y-auto">
       {/* Title display */}
@@ -78,3 +68,4 @@ export const GameBoard: React.FC<GameBoardProps> = ({ content, title, guessedWor
     </div>
   );
 };
+window.WikiCherche.GameBoard = GameBoard;

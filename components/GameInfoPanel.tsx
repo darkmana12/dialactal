@@ -1,20 +1,9 @@
-// FIX: Import React for component creation.
-import React from 'react';
-
-// FIX: Add an interface for the component's props.
-interface GameInfoPanelProps {
-  guessCount: number;
-  onNewGame: () => void;
-  onReveal: () => void;
-  disabled: boolean;
-}
-
-export const GameInfoPanel: React.FC<GameInfoPanelProps> = ({ 
+const GameInfoPanel = ({ 
   guessCount,
   onNewGame, 
   onReveal,
   disabled
-}) => {
+}: { guessCount: number, onNewGame: () => void, onReveal: () => void, disabled: boolean }) => {
   return (
     <div className="bg-white text-brand-primary p-4 rounded-2xl border-2 border-brand-border h-full">
       <div className="text-left">
@@ -46,3 +35,4 @@ export const GameInfoPanel: React.FC<GameInfoPanelProps> = ({
     </div>
   );
 };
+window.WikiCherche.GameInfoPanel = GameInfoPanel;

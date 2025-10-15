@@ -1,7 +1,4 @@
-// FIX: Import React for creating a component.
-import React from 'react';
-
-export const CloseIcon = () => (
+const CloseIcon = () => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
     className="h-6 w-6"
@@ -17,3 +14,4 @@ export const CloseIcon = () => (
     />
   </svg>
 );
+window.WikiCherche.CloseIcon = CloseIcon;

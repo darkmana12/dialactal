@@ -1,12 +1,4 @@
-// FIX: Import React for creating the component.
-import React from 'react';
-
-// FIX: Add an interface for the component's props.
-interface GuessedWordsListProps {
-  guessHistory: string[];
-}
-
-export const GuessedWordsList: React.FC<GuessedWordsListProps> = ({ guessHistory }) => {
+const GuessedWordsList = ({ guessHistory }: { guessHistory: string[] }) => {
   return (
     <div className="bg-white p-4 rounded-2xl border-2 border-brand-border h-[45vh] flex flex-col">
       <h3 className="font-bold text-lg mb-4 text-brand-primary">Mots Essayés</h3>
@@ -28,3 +20,4 @@ export const GuessedWordsList: React.FC<GuessedWordsListProps> = ({ guessHistory
     </div>
   );
 };
+window.WikiCherche.GuessedWordsList = GuessedWordsList;

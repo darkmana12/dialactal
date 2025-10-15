@@ -1,16 +1,11 @@
-// FIX: Import React and useState from the 'react' package.
-import React, { useState } from 'react';
+// Fix: Add React from window to scope to fix undefined errors.
+const React = window.React;
 
-// FIX: Add an interface for the component's props for type safety.
-interface GuessInputProps {
-  onGuess: (guess: string) => void;
-  disabled: boolean;
-}
-
-export const GuessInput: React.FC<GuessInputProps> = ({ onGuess, disabled }) => {
+const GuessInput = ({ onGuess, disabled }: { onGuess: (guess: string) => void, disabled: boolean }) => {
+  const { useState } = React;
   const [inputValue, setInputValue] = useState('');
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (inputValue.trim() && !disabled) {
       onGuess(inputValue.trim());
@@ -44,3 +39,4 @@ export const GuessInput: React.FC<GuessInputProps> = ({ onGuess, disabled }) => 
     </form>
   );
 };
+window.WikiCherche.GuessInput = GuessInput;

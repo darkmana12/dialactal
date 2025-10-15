@@ -1,29 +1,31 @@
-// FIX: Import React and hooks using ES modules.
-import React, { useState, useEffect, useCallback } from 'react';
+// Fix: Add React from window to scope to fix undefined error.
+const React = window.React;
 
-export const ShootingGalleryGame = () => {
-  const [targets, setTargets] = useState<{ id: number; x: number; y: number; }[]>([]);
+const ShootingGalleryGame = () => {
+  const { useState, useEffect, useCallback } = React;
+  // Fix: Added type for component state.
+  const [targets, setTargets] = useState<{ id: number; x: number; y: number }[]>([]);
   const [score, setScore] = useState(0);
 
   useEffect(() => {
     const spawnInterval = setInterval(() => {
       setTargets(prevTargets => {
         if (prevTargets.length >= 10) {
-          // Limit the number of targets on screen
           return prevTargets;
         }
         const newTarget = {
           id: Date.now(),
-          x: Math.random() * 90, // % from left, 90 to keep it within bounds
-          y: Math.random() * 90, // % from top
+          x: Math.random() * 90,
+          y: Math.random() * 90,
         };
         return [...prevTargets, newTarget];
       });
-    }, 800); // Spawn a new target every 800ms
+    }, 800);
 
     return () => clearInterval(spawnInterval);
   }, []);
 
+  // Fix: Added type for callback parameter.
   const handleTargetClick = useCallback((targetId: number) => {
     setTargets(prevTargets => prevTargets.filter(t => t.id !== targetId));
     setScore(prevScore => prevScore + 10);
@@ -54,3 +56,4 @@ export const ShootingGalleryGame = () => {
     </div>
   );
 };
+window.WikiCherche.ShootingGalleryGame = ShootingGalleryGame;

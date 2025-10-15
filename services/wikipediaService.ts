@@ -105,8 +105,12 @@ async function isArticlePopular(title: string): Promise<boolean> {
     console.log(`Article "${title}" has ${totalViews} user views in the last 30 days.`);
     return totalViews >= POPULARITY_THRESHOLD;
   } catch (error) {
-    // Fix: The 'error' object in a catch block is of type 'unknown'. Explicitly cast to a string to use it in console.error.
-    console.error(`Error checking popularity for "${title}":`, String(error));
+    // Fix: The 'error' object in a catch block is of type 'unknown'. Handle it safely.
+    if (error instanceof Error) {
+        console.error(`Error checking popularity for "${title}":`, error.message);
+    } else {
+        console.error(`Error checking popularity for "${title}":`, String(error));
+    }
     return false; // Fail safe
   }
 }
@@ -163,8 +167,12 @@ export async function fetchRandomArticle(): Promise<WikipediaArticle> {
       // If no article in the batch was suitable, the loop will continue to the next attempt.
       console.log(`No suitable article found in batch for attempt ${attempt}. Fetching a new batch.`);
     } catch (error) {
-      // Fix: The 'error' object in a catch block is of type 'unknown'. Explicitly cast to a string to use it in console.error.
-      console.error(`Error during article fetching attempt ${attempt}:`, String(error));
+      // Fix: The 'error' object in a catch block is of type 'unknown'. Handle it safely.
+      if (error instanceof Error) {
+        console.error(`Error during article fetching attempt ${attempt}:`, error.message);
+      } else {
+        console.error(`Error during article fetching attempt ${attempt}:`, String(error));
+      }
       // Wait a bit before retrying in case of transient network errors
       await new Promise(resolve => setTimeout(resolve, 500));
     }

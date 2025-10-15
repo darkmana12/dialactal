@@ -89,8 +89,12 @@ const App: React.FC = () => {
         throw new Error("Failed to fetch article.");
       }
     } catch (error) {
-      // Fix: The 'error' object in a catch block is of type 'unknown'. Handle it safely by casting it to a string.
-      console.error('Error starting new game:', String(error));
+      // Fix: The 'error' object in a catch block is of type 'unknown'. Handle it safely.
+      if (error instanceof Error) {
+        console.error('Error starting new game:', error.message);
+      } else {
+        console.error('Error starting new game:', String(error));
+      }
       setGameState('ERROR');
     }
   }, []);

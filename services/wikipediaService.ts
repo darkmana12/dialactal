@@ -14,7 +14,7 @@ const POPULARITY_THRESHOLD = 5000;
 // heading (H2), capped at a maximum of 3 paragraphs to ensure conciseness.
 async function fetchAndParseArticleContent(title: string): Promise<string> {
   const encodedTitle = encodeURIComponent(title);
-  const response = await fetch(`${API_BASE_URL}/page/html/${encodedTitle}`);
+  const response = await fetch(`${API_BASE_URL}/page/html/${encodedTitle}?origin=*`);
   
   if (!response.ok) {
     throw new Error(`Failed to fetch article HTML for "${title}"`);
@@ -87,7 +87,7 @@ async function isArticlePopular(title: string): Promise<boolean> {
     };
 
     // We check for 'user' views to filter out bots and get a better sense of human interest.
-    const url = `${PAGEVIEWS_API_BASE_URL}/fr.wikipedia/all-access/user/${encodedTitle}/daily/${formatDate(startDate)}/${formatDate(endDate)}`;
+    const url = `${PAGEVIEWS_API_BASE_URL}/fr.wikipedia/all-access/user/${encodedTitle}/daily/${formatDate(startDate)}/${formatDate(endDate)}?origin=*`;
 
     const response = await fetch(url);
     if (!response.ok) {

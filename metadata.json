@@ -1,0 +1,5 @@
+{
+  "name": "WikiGuess",
+  "description": "A word-guessing game where you try to find the title of a random Wikipedia article by guessing words from its content. Enjoy unlimited play by starting a new game at any time.",
+  "requestFramePermissions": []
+}

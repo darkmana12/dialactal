@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>WikiCherche - Le jeu de mots Wikipedia</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&display=swap" rel="stylesheet">
+    <style>
+      body {
+         background-color: #1E293B;
+         background-image: url("data:image/svg+xml,%3Csvg width='20' height='20' viewBox='0 0 20 20' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23334155' fill-opacity='0.4' fill-rule='evenodd'%3E%3Cpath d='M9 2h2v16H9V2zm-7 7h16v2H2v-2z'/%3E%3C/g%3E%3C/svg%3E");
+      }
+    </style>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              'brand-bg': '#1E293B',
+              'brand-primary': '#212121',
+              'brand-border': '#64748B',
+              'brand-secondary': '#F1F1F1',
+              'brand-accent-red': '#F3684A',
+              'brand-text-placeholder': '#A9A9A9',
+              'brand-hidden-word': '#D1D5DB', // gray-300
+            },
+            fontFamily: {
+              sans: ['Poppins', 'sans-serif'],
+            },
+            keyframes: {
+              revealWord: {
+                '0%': { backgroundColor: 'rgba(253, 224, 71, 0.6)' }, // yellow-300
+                '100%': { backgroundColor: 'transparent' }
+              },
+              popIn: {
+                '0%': { transform: 'scale(0)' },
+                '80%': { transform: 'scale(1.1)' },
+                '100%': { transform: 'scale(1)' }
+              },
+            },
+            animation: {
+              'reveal-word': 'revealWord 0.8s ease-out forwards',
+              'pop-in': 'popIn 0.3s ease-out forwards',
+            },
+          }
+        }
+      }
+    </script>
+  <script type="importmap">
+{
+  "imports": {
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
+    "react/": "https://aistudiocdn.com/react@^19.2.0/",
+    "react": "https://aistudiocdn.com/react@^19.2.0",
+    "@google/genai": "https://aistudiocdn.com/@google/genai@^1.24.0"
+  }
+}
+</script>
+</head>
+  <body class="bg-brand-bg text-brand-primary font-sans">
+    <div id="root"></div>
+    <script type="module" src="/index.tsx"></script>
+  </body>
+</html>

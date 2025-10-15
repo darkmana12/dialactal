@@ -2,7 +2,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 // FIX: Import the App component using ES modules.
-import { App } from './App';
+import { App } from './App.tsx';
 
 const rootElement = document.getElementById('root');
 if (!rootElement) {

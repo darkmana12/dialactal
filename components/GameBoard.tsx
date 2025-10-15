@@ -1,7 +1,7 @@
 // FIX: Import React and dependencies using ES modules.
 import React from 'react';
-import { normalizeWord } from '../utils/textProcessor';
-import type { ProcessedWord, GuessedWord } from '../types';
+import { normalizeWord } from '../utils/textProcessor.ts';
+import type { ProcessedWord, GuessedWord } from '../types.ts';
 
 // FIX: Add explicit prop types for the component.
 interface GameBoardProps {

@@ -1,7 +1,7 @@
 // FIX: Import React and dependencies via ES modules.
 import React from 'react';
-import { CloseIcon } from './icons/CloseIcon';
-import type { GameState } from '../types';
+import { CloseIcon } from './icons/CloseIcon.tsx';
+import type { GameState } from '../types.ts';
 
 // FIX: Add an interface for the component's props.
 interface WinModalProps {

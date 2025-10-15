@@ -1,18 +1,19 @@
+
 // FIX: Import React and hooks.
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 // FIX: Use ES module imports for all dependencies.
-import { fetchRandomArticle } from './services/wikipediaService';
-import { processArticleContent, normalizeWord } from './utils/textProcessor';
-import { verbConjugations } from './utils/verbConjugations';
-import { RELATED_WORDS_DB, SEMANTIC_CATEGORIES } from './constants';
-import { GameBoard } from './components/GameBoard';
-import { GuessInput } from './components/GuessInput';
-import { GuessedWordsList } from './components/GuessedWordsList';
-import { GameInfoPanel } from './components/GameInfoPanel';
-import { LoadingSpinner } from './components/LoadingSpinner';
-import { WinModal } from './components/WinModal';
-import { ShootingGalleryGame } from './components/ShootingGalleryGame';
-import type { GameState, ProcessedWord, GuessedWord } from './types';
+import { fetchRandomArticle } from './services/wikipediaService.ts';
+import { processArticleContent, normalizeWord } from './utils/textProcessor.ts';
+import { verbConjugations } from './utils/verbConjugations.ts';
+import { RELATED_WORDS_DB, SEMANTIC_CATEGORIES } from './constants.ts';
+import { GameBoard } from './components/GameBoard.tsx';
+import { GuessInput } from './components/GuessInput.tsx';
+import { GuessedWordsList } from './components/GuessedWordsList.tsx';
+import { GameInfoPanel } from './components/GameInfoPanel.tsx';
+import { LoadingSpinner } from './components/LoadingSpinner.tsx';
+import { WinModal } from './components/WinModal.tsx';
+import { ShootingGalleryGame } from './components/ShootingGalleryGame.tsx';
+import type { GameState, ProcessedWord, GuessedWord } from './types.ts';
 
 export const App = () => {
   // FIX: Add explicit types for all state variables.
@@ -114,8 +115,9 @@ export const App = () => {
     const normalizedGuess = normalizeWord(trimmedGuess);
     
     // FIX: Safely check if the word has already been found to avoid errors.
-    const existingGuess = guessedWords.get(normalizedGuess);
-    if (existingGuess && existingGuess.found) {
+    // An explicit type assertion is used here to address a potential type inference issue where .get() might return `unknown`.
+    const existingGuess = guessedWords.get(normalizedGuess) as GuessedWord | undefined;
+    if (existingGuess?.found) {
         return;
     }
 
@@ -160,7 +162,8 @@ export const App = () => {
 
     if (wordFound) {
         currentContent = tempContent;
-        const existing = newGuessedWords.get(normalizedGuess);
+        // FIX: An explicit type assertion is used here to address a potential type inference issue where .get() might return `unknown`.
+        const existing = newGuessedWords.get(normalizedGuess) as GuessedWord | undefined;
         newGuessedWords.set(normalizedGuess, {
             found: true,
             count: (existing?.count || 0) + directMatchCount,
@@ -224,8 +227,9 @@ export const App = () => {
     setProcessedContent(currentContent);
 
     const allTitleWordsFound = titleWords.size > 0 && Array.from(titleWords).every(titleWord => {
-        const data = newGuessedWords.get(titleWord);
-        return data && data.found;
+        // FIX: An explicit type assertion is used here to address a potential type inference issue where .get() might return `unknown`.
+        const data = newGuessedWords.get(titleWord) as GuessedWord | undefined;
+        return !!data?.found;
     });
 
     if (allTitleWordsFound) {

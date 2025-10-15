@@ -1,18 +1,20 @@
 
 
+
+
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import type { ProcessedWord, GameState, GuessedWord } from './types';
-import { fetchRandomArticle } from './services/wikipediaService';
-import { processArticleContent, normalizeWord } from './utils/textProcessor';
-import { verbConjugations } from './utils/verbConjugations';
-import { RELATED_WORDS_DB, SEMANTIC_CATEGORIES } from './constants';
-import GameBoard from './components/GameBoard';
-import GuessInput from './components/GuessInput';
-import GuessedWordsList from './components/GuessedWordsList';
-import GameInfoPanel from './components/GameInfoPanel';
-import LoadingSpinner from './components/LoadingSpinner';
-import WinModal from './components/WinModal';
-import ShootingGalleryGame from './components/ShootingGalleryGame';
+import type { ProcessedWord, GameState, GuessedWord } from './types.ts';
+import { fetchRandomArticle } from './services/wikipediaService.ts';
+import { processArticleContent, normalizeWord } from './utils/textProcessor.ts';
+import { verbConjugations } from './utils/verbConjugations.ts';
+import { RELATED_WORDS_DB, SEMANTIC_CATEGORIES } from './constants.ts';
+import GameBoard from './components/GameBoard.tsx';
+import GuessInput from './components/GuessInput.tsx';
+import GuessedWordsList from './components/GuessedWordsList.tsx';
+import GameInfoPanel from './components/GameInfoPanel.tsx';
+import LoadingSpinner from './components/LoadingSpinner.tsx';
+import WinModal from './components/WinModal.tsx';
+import ShootingGalleryGame from './components/ShootingGalleryGame.tsx';
 
 const App: React.FC = () => {
   const [gameState, setGameState] = useState<GameState>('LOADING');

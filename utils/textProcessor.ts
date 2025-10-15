@@ -1,5 +1,5 @@
-import type { ProcessedWord } from '../types';
-import { COMMON_WORDS } from '../constants';
+import type { ProcessedWord } from '../types.ts';
+import { COMMON_WORDS } from '../constants.ts';
 
 /**
  * Normalizes a word by converting to lowercase and removing non-alphanumeric characters.

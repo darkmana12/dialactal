@@ -1,4 +1,4 @@
-import type { WikipediaArticle } from '../types';
+import type { WikipediaArticle } from '../types.ts';
 
 const API_BASE_URL = 'https://fr.wikipedia.org/api/rest_v1';
 const WIKI_ACTION_API_URL = 'https://fr.wikipedia.org/w/api.php';

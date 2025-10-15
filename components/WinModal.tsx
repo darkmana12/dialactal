@@ -1,6 +1,6 @@
 import React from 'react';
-import type { GameState } from '../types';
-import CloseIcon from './icons/CloseIcon';
+import type { GameState } from '../types.ts';
+import CloseIcon from './icons/CloseIcon.tsx';
 
 interface WinModalProps {
   gameState: GameState;

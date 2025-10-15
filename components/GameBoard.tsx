@@ -1,6 +1,6 @@
 import React from 'react';
-import type { ProcessedWord, GuessedWord } from '../types';
-import { normalizeWord } from '../utils/textProcessor';
+import type { ProcessedWord, GuessedWord } from '../types.ts';
+import { normalizeWord } from '../utils/textProcessor.ts';
 
 interface GameBoardProps {
   content: ProcessedWord[];

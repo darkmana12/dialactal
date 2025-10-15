@@ -1,4 +1,5 @@
 
+
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import type { ProcessedWord, GameState, GuessedWord } from './types';
 import { fetchRandomArticle } from './services/wikipediaService';
@@ -88,7 +89,7 @@ const App: React.FC = () => {
         throw new Error("Failed to fetch article.");
       }
     } catch (error) {
-      // FIX: The 'error' object in a catch block is of type 'unknown'. Handle it safely by casting it to a string.
+      // Fix: The 'error' object in a catch block is of type 'unknown'. Handle it safely by casting it to a string.
       console.error('Error starting new game:', String(error));
       setGameState('ERROR');
     }

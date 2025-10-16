@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { fetchRandomArticle } from './services/wikipediaService';
 import { processArticleContent, normalizeWord, generateMorphoVariants, levenshtein } from './utils/textProcessor';
 import { verbConjugations } from './utils/verbConjugations';
@@ -12,6 +12,8 @@ import LoadingSpinner from './components/LoadingSpinner';
 import PopBubbles from './components/minigames/PopBubbles';
 import WinModal from './components/WinModal';
 import type { GameState, ProcessedWord, GuessedWord } from './types';
+import CoopPanel from './components/CoopPanel';
+import { WebSocketSyncService, type CoopEvent } from './services/wsSyncService';
 
 // Guard to prevent startNewGame from running twice in development due to React StrictMode remounts
 let didInit = false;
@@ -21,6 +23,7 @@ const App = () => {
   const [gameState, setGameState] = useState<GameState>('LOADING');
   const [articleTitle, setArticleTitle] = useState('');
   const [articleUrl, setArticleUrl] = useState('');
+  const [rawArticleContent, setRawArticleContent] = useState('');
   const [processedContent, setProcessedContent] = useState<ProcessedWord[]>([]);
   const [guessedWords, setGuessedWords] = useState<Map<string, GuessedWord>>(new Map());
   const [guessCount, setGuessCount] = useState(0);
@@ -32,6 +35,26 @@ const App = () => {
   // removed totalUniqueWords state (was unused)
   const [hiddenUniqueWords, setHiddenUniqueWords] = useState<string[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(true);
+
+  // Coop state
+  // Default WebSocket URL (local dev server); can be made configurable
+  const [sync] = useState(() => new WebSocketSyncService('ws://127.0.0.1:8787'));
+  const [roomId, setRoomId] = useState<string | null>(null);
+  const [players, setPlayers] = useState<string[]>([]);
+  const [seenPeers, setSeenPeers] = useState<Set<string>>(new Set());
+  const [isHost, setIsHost] = useState(false);
+  // Refs to avoid rejoining on every state change while having fresh values in handlers
+  const isHostRef = useRef(isHost);
+  const articleTitleRef = useRef(articleTitle);
+  const articleUrlRef = useRef(articleUrl);
+  const rawArticleContentRef = useRef(rawArticleContent);
+
+  useEffect(() => { isHostRef.current = isHost; }, [isHost]);
+  useEffect(() => { articleTitleRef.current = articleTitle; }, [articleTitle]);
+  useEffect(() => { articleUrlRef.current = articleUrl; }, [articleUrl]);
+  useEffect(() => { rawArticleContentRef.current = rawArticleContent; }, [rawArticleContent]);
+  // Ref to always invoke the latest handleGuess from WS events (avoid stale closures)
+  const handleGuessRef = useRef<(g: string, remote?: boolean) => void>(() => {});
   
   const startNewGame = useCallback(async () => {
     setGameState('LOADING');
@@ -49,6 +72,7 @@ const App = () => {
       if (article) {
         setArticleTitle(article.title);
         setArticleUrl(article.url);
+        setRawArticleContent(article.content);
         const normalizedTitleWords = new Set(
           article.title
             .split(' ')
@@ -56,27 +80,27 @@ const App = () => {
             .filter(w => w.length > 0)
         );
         setTitleWords(normalizedTitleWords);
-        const processed = processArticleContent(article.content);
-        
+
         setLoadingMessage("Analyse sémantique des mots...");
+        const processed = processArticleContent(article.content);
 
         const hiddenWordsArray = Array.from(new Set(
-            processed
-                .filter(w => w.hidden && !w.isPunctuation)
-                .map(w => normalizeWord(w.original))
+          processed
+            .filter(w => w.hidden && !w.isPunctuation)
+            .map(w => normalizeWord(w.original))
         ));
-  setHiddenUniqueWords(hiddenWordsArray);
+        setHiddenUniqueWords(hiddenWordsArray);
         const hiddenWordsSet = new Set(hiddenWordsArray);
 
         // Normalize static related words DB against normalized hidden words
         const newRelatedWordsMap = new Map<string, string>();
         for (const clue in RELATED_WORDS_DB) {
-            const target = RELATED_WORDS_DB[clue];
-            const normClue = normalizeWord(clue);
-            const normTarget = normalizeWord(target);
-            if (hiddenWordsSet.has(normTarget)) {
-                newRelatedWordsMap.set(normClue, normTarget);
-            }
+          const target = RELATED_WORDS_DB[clue];
+          const normClue = normalizeWord(clue);
+          const normTarget = normalizeWord(target);
+          if (hiddenWordsSet.has(normTarget)) {
+            newRelatedWordsMap.set(normClue, normTarget);
+          }
         }
         setRelatedWordsMap(newRelatedWordsMap);
 
@@ -99,6 +123,12 @@ const App = () => {
 
         setProcessedContent(processed);
         setGameState('PLAYING');
+
+        // Broadcast new game to room if host
+        if (roomId && isHost) {
+          sync.send({ type: 'new-game', from: sync.getPeerId() });
+          sync.send({ type: 'load-article', from: sync.getPeerId(), payload: { title: article.title, url: article.url, content: article.content } });
+        }
       } else {
         throw new Error("Failed to fetch article.");
       }
@@ -113,12 +143,21 @@ const App = () => {
       }
       setGameState('ERROR');
     }
-  }, []);
+  }, [roomId, isHost, sync]);
 
   useEffect(() => {
     if (!didInit) {
       didInit = true;
-      startNewGame();
+      // If URL contains a room code, join and wait for host instead of starting a local game
+      const hash = window.location.hash;
+      const m = hash.match(/#room=([A-Z0-9]+)/i);
+      if (m && m[1]) {
+        setGameState('LOADING');
+        setLoadingMessage('Connexion à la salle...');
+        joinRoom(m[1].toUpperCase());
+      } else {
+        startNewGame();
+      }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -126,7 +165,7 @@ const App = () => {
   // foundWordsCount was unused; removed to tidy code
 
   // Fix: Added type for the 'guess' parameter.
-  const handleGuess = (guess: string) => {
+  const handleGuess = (guess: string, remote: boolean = false) => {
     const trimmedGuess = guess.trim();
     if (!trimmedGuess || gameState !== 'PLAYING') return;
 
@@ -271,6 +310,11 @@ const App = () => {
     setGuessedWords(newGuessedWords);
     setProcessedContent(currentContent);
 
+    // Coop: broadcast guess unless it originated remotely
+    if (roomId && !remote) {
+      sync.send({ type: 'guess', from: sync.getPeerId(), payload: { guess: trimmedGuess } });
+    }
+
 
   const allTitleWordsFound = titleWords.size > 0 && Array.from(titleWords).every(titleWord => {
     const data = newGuessedWords.get(String(titleWord));
@@ -289,6 +333,8 @@ const App = () => {
         setProcessedContent(finalContent);
     }
   };
+  // Keep ref pointing to latest handleGuess implementation
+  useEffect(() => { handleGuessRef.current = handleGuess; });
 
   const handleReveal = useCallback(() => {
     if (gameState !== 'PLAYING') return;
@@ -301,10 +347,150 @@ const App = () => {
     setProcessedContent(revealedContent);
     setGameState('REVEALED');
     setIsModalOpen(true);
+
+    if (roomId) {
+      sync.send({ type: 'reveal', from: sync.getPeerId() });
+    }
   }, [gameState, processedContent]);
   
   const handleCloseModal = () => {
     setIsModalOpen(false);
+  };
+
+  // Coop: message handling
+  useEffect(() => {
+    if (!roomId) return;
+    const onMessage = (evt: CoopEvent) => {
+      switch (evt.type) {
+        case 'joined': {
+          // Successfully joined room; announce presence then request sync from host
+          setLoadingMessage('Connecté. En attente de synchronisation de la partie...');
+          sync.send({ type: 'hello', from: sync.getPeerId() });
+          sync.send({ type: 'sync-request', from: sync.getPeerId() });
+          break;
+        }
+        case 'hello': {
+          setPlayers((p) => Array.from(new Set([...p, evt.from])));
+          setSeenPeers((prev) => {
+            const next = new Set(prev);
+            if (!next.has(evt.from)) {
+              next.add(evt.from);
+              // reply with my presence once per peer
+              sync.send({ type: 'hello', from: sync.getPeerId() });
+            }
+            return next;
+          });
+          // If I'm host, share current article state (use raw content for proper parsing)
+          if (isHost && articleTitle && articleUrl && rawArticleContent) {
+            sync.send({ type: 'load-article', from: sync.getPeerId(), payload: { title: articleTitle, url: articleUrl, content: rawArticleContent } });
+          }
+          break;
+        }
+        case 'goodbye': {
+          setPlayers((p) => p.filter((id) => id !== evt.from));
+          break;
+        }
+        case 'peer-joined': {
+          // Increment peer count optimistically when server announces a join
+          setPlayers((p) => Array.from(new Set([...p, 'peer'])));
+          break;
+        }
+        case 'peer-left': {
+          // Decrement if possible
+          setPlayers((p) => (p.length > 1 ? p.slice(0, p.length - 1) : p));
+          break;
+        }
+        case 'sync-request': {
+          if (isHost && articleTitle && articleUrl && rawArticleContent) {
+            sync.send({ type: 'load-article', from: sync.getPeerId(), payload: { title: articleTitle, url: articleUrl, content: rawArticleContent } });
+          }
+          break;
+        }
+        case 'guess': {
+          const g = evt.payload?.guess as string | undefined;
+          if (g) handleGuessRef.current?.(g, true);
+          break;
+        }
+        case 'reveal': {
+          if (gameState === 'PLAYING') {
+            const revealedContent = processedContent.map(word => ({ ...word, hidden: false, isCloseGuess: false }));
+            setProcessedContent(revealedContent);
+            setGameState('REVEALED');
+            setIsModalOpen(true);
+          }
+          break;
+        }
+        case 'new-game': {
+          // Ignore here; host will send load-article.
+          break;
+        }
+        case 'load-article': {
+          const payload = evt.payload as { title: string; url: string; content: string } | undefined;
+          if (payload) {
+            setGameState('LOADING');
+            setIsModalOpen(true);
+            setLoadingMessage("Synchronisation de la partie...");
+            setGuessedWords(new Map());
+            setGuessCount(0);
+            setTitleWords(new Set());
+            setGuessHistory([]);
+            setRelatedWordsMap(new Map());
+            setCategoryMap(new Map());
+
+            setArticleTitle(payload.title);
+            setArticleUrl(payload.url);
+            setRawArticleContent(payload.content);
+            const normalizedTitleWords = new Set(
+              payload.title.split(' ').map(normalizeWord).filter(w => w.length > 0)
+            );
+            setTitleWords(normalizedTitleWords);
+            const processed = processArticleContent(payload.content);
+            const hiddenWordsArray = Array.from(new Set(
+              processed.filter(w => w.hidden && !w.isPunctuation).map(w => normalizeWord(w.original))
+            ));
+            setHiddenUniqueWords(hiddenWordsArray);
+            setProcessedContent(processed);
+            setGameState('PLAYING');
+          }
+          break;
+        }
+      }
+    };
+    sync.join(roomId, onMessage);
+  // Register myself; do not send hello until 'joined' to ensure room is set server-side
+  setPlayers([sync.getPeerId()]);
+  setSeenPeers(new Set([sync.getPeerId()]));
+  // Wait for 'joined' event before sending hello/sync-request
+    // Safety: if no sync in 5s, keep user informed
+    const to = setTimeout(() => {
+      setLoadingMessage("Toujours en attente de l'hôte... Assure-toi que l'hôte a bien ouvert la salle.");
+    }, 5000);
+    return () => {
+      // announce leaving
+      sync.send({ type: 'goodbye', from: sync.getPeerId() });
+      sync.leave();
+      setPlayers([]);
+      clearTimeout(to);
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [roomId]);
+
+  // Removed duplicate auto-join effect; handled in initial mount logic above
+
+  const createRoom = (rid: string) => {
+    setIsHost(true);
+    setRoomId(rid);
+  };
+  const joinRoom = (rid: string) => {
+    setIsHost(false);
+    setRoomId(rid);
+  };
+  const leaveRoom = () => {
+    setRoomId(null);
+    setIsHost(false);
+    sync.send({ type: 'goodbye', from: sync.getPeerId() });
+    sync.leave();
+    setPlayers([]);
   };
 
   return (
@@ -335,12 +521,22 @@ const App = () => {
               onReveal={handleReveal}
               disabled={gameState !== 'PLAYING'}
             />
+            <CoopPanel
+              connected={!!roomId}
+              isHost={isHost}
+              roomId={roomId}
+              players={players}
+              onCreate={createRoom}
+              onJoin={joinRoom}
+              onLeave={leaveRoom}
+              onHostNewGame={startNewGame}
+            />
             <GuessedWordsList guessHistory={guessHistory} />
           </aside>
 
           <main className="lg:col-span-3 flex flex-col gap-6">
             <GuessInput 
-              onGuess={handleGuess}
+              onGuess={(g) => handleGuess(String(g))}
               disabled={gameState !== 'PLAYING'}
             />
             <GameBoard

@@ -52,6 +52,38 @@ function shuffle<T>(arr: T[]): T[] {
 
 const TITLE_BLACKLIST_PATTERNS = [/\(homonymie\)/i, /^liste de /i];
 
+// Additional difficulty filters: avoid overly specific or technical titles
+function hasParentheses(title: string): boolean {
+  return /\(/.test(title) && /\)/.test(title);
+}
+
+function hasColon(title: string): boolean {
+  return title.includes(':');
+}
+
+function hasSlash(title: string): boolean {
+  return title.includes('/');
+}
+
+function hasComma(title: string): boolean {
+  return title.includes(',');
+}
+
+function looksLikeYearOrDate(title: string): boolean {
+  const t = title.trim();
+  // Standalone year or short numeric (e.g., "1998", "2020")
+  if (/^\d{3,4}$/.test(t)) return true;
+  // Contains a typical year token (1900–2099) or date-like pattern
+  if (/(19\d{2}|20\d{2})/.test(t)) return true;
+  // Common season/episode markers
+  if (/\b(saison|épisode|episode|chapitre|tome|volume)\b/i.test(t)) return true;
+  return false;
+}
+
+function isTooLong(title: string, maxLen = 45): boolean {
+  return title.length > maxLen;
+}
+
 // Common countries/continents to detect regional-specific titles like "X au Togo"
 const COUNTRIES_AND_CONTINENTS = [
   // Continents
@@ -82,6 +114,13 @@ function isTitleAllowed(title: string): boolean {
   if (TITLE_BLACKLIST_PATTERNS.some((re) => re.test(t))) return false;
   // Exclude hyper-specific regional topics like "X au/en/à <pays/continent>"
   if (containsPrepositionCountryPattern(` ${t} `)) return false;
+  // Exclude titles with qualifiers or subtopics that are often niche
+  if (hasParentheses(title)) return false;
+  if (hasColon(title)) return false;
+  if (hasSlash(title)) return false;
+  if (hasComma(title)) return false;
+  if (looksLikeYearOrDate(title)) return false;
+  if (isTooLong(title)) return false;
   return true;
 }
 
@@ -178,7 +217,7 @@ async function resolveToMainTopic(title: string): Promise<string | null> {
 }
 
 // Notoriety check: keep topics with sufficient interlanguage presence (sitelinks)
-async function isNotableBySitelinks(title: string, minLinks = 10): Promise<boolean> {
+async function isNotableBySitelinks(title: string, minLinks = 15): Promise<boolean> {
   try {
     const qid = await fetchWikidataIdForTitle(title);
     if (!qid) return false;
@@ -288,7 +327,7 @@ export async function fetchRandomArticle(): Promise<WikipediaArticle> {
   // 1) Try curated pool first (AdQ/BA)
   const curated = await fetchCuratedCandidateTitles();
   if (curated.length > 0) {
-    const maxTries = Math.min(30, curated.length);
+    const maxTries = Math.min(60, curated.length);
     for (let i = 0; i < maxTries; i++) {
       const title = curated[Math.floor(Math.random() * curated.length)];
       if (title.startsWith('Liste de') || title.includes('(homonymie)')) continue;
@@ -298,7 +337,14 @@ export async function fetchRandomArticle(): Promise<WikipediaArticle> {
       try {
         // Try resolving to a broader main topic via Wikidata
         const broader = await resolveToMainTopic(title);
-        const effectiveTitle = broader || title;
+        let effectiveTitle = broader || title;
+        // Fallback: strip trailing parenthetical qualifier to broaden topic
+        if (!isTitleAllowed(effectiveTitle) && /\([^)]*\)\s*$/.test(effectiveTitle)) {
+          const base = effectiveTitle.replace(/\s*\([^)]*\)\s*$/, '').trim();
+          if (base && isTitleAllowed(base) && (await isNotableBySitelinks(base))) {
+            effectiveTitle = base;
+          }
+        }
         if (broader && !isTitleAllowed(effectiveTitle)) continue;
         if (broader && !(await isNotableBySitelinks(effectiveTitle))) continue;
         const content = await fetchAndParseArticleContent(effectiveTitle);
@@ -315,7 +361,7 @@ export async function fetchRandomArticle(): Promise<WikipediaArticle> {
   let attempt = 1;
   while (true) {
     try {
-      const randomListUrl = `${WIKI_ACTION_API_URL}?action=query&list=random&rnnamespace=0&rnlimit=10&format=json&origin=*`;
+  const randomListUrl = `${WIKI_ACTION_API_URL}?action=query&list=random&rnnamespace=0&rnlimit=20&format=json&origin=*`;
       const randomListResponse = await fetch(randomListUrl);
       if (!randomListResponse.ok) {
         await new Promise(resolve => setTimeout(resolve, 400));
@@ -330,7 +376,13 @@ export async function fetchRandomArticle(): Promise<WikipediaArticle> {
         if (!(await isNotableBySitelinks(title))) continue;
         try {
           const broader = await resolveToMainTopic(title);
-          const effectiveTitle = broader || title;
+          let effectiveTitle = broader || title;
+          if (!isTitleAllowed(effectiveTitle) && /\([^)]*\)\s*$/.test(effectiveTitle)) {
+            const base = effectiveTitle.replace(/\s*\([^)]*\)\s*$/, '').trim();
+            if (base && isTitleAllowed(base) && (await isNotableBySitelinks(base))) {
+              effectiveTitle = base;
+            }
+          }
           if (broader && !isTitleAllowed(effectiveTitle)) continue;
           if (broader && !(await isNotableBySitelinks(effectiveTitle))) continue;
           const content = await fetchAndParseArticleContent(effectiveTitle);

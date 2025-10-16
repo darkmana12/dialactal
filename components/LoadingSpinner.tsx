@@ -6,4 +6,5 @@ const LoadingSpinner = ({ message }: { message: string }) => {
     </div>
   );
 };
-window.WikiCherche.LoadingSpinner = LoadingSpinner;
+
+export default LoadingSpinner;

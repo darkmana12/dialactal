@@ -1,14 +1,14 @@
+
 // A list of common English stop words.
 // These words will be visible from the start of the game.
-window.WikiCherche.COMMON_WORDS = new Set([
-]);
+export const COMMON_WORDS = new Set<string>([]);
 
 /**
  * A static, pre-generated database of related words to avoid API calls during gameplay.
  * The key is the "clue" word (synonym, related term), and the value is the "target" word in the article.
  * In a real-world application, this would be a much larger file generated offline.
  */
-window.WikiCherche.RELATED_WORDS_DB = {
+export const RELATED_WORDS_DB: Record<string, string> = {
   // General concepts
   "foyer": "maison",
   "domicile": "maison",
@@ -262,7 +262,7 @@ window.WikiCherche.RELATED_WORDS_DB = {
  * A list of semantic categories. If a user guesses a word in one of these sets,
  * it will be considered "close" to any other hidden word from the same set.
  */
-window.WikiCherche.SEMANTIC_CATEGORIES = [
+export const SEMANTIC_CATEGORIES: Set<string>[] = [
   // Time
   new Set(['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre']),
   new Set(['lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi', 'dimanche']),

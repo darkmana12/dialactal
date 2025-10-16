@@ -1,6 +1,6 @@
 // A map of infinitive verbs to a set of their conjugated forms.
 // This is not an exhaustive list but covers many common forms.
-window.WikiCherche.verbConjugations = new Map([
+export const verbConjugations: Map<string, Set<string>> = new Map([
   ['être', new Set(['suis', 'es', 'est', 'sommes', 'êtes', 'sont', 'étais', 'était', 'étions', 'étiez', 'étaient', 'fus', 'fut', 'fûmes', 'fûtes', 'furent', 'serai', 'seras', 'sera', 'serons', 'serez', 'seront', 'sois', 'soit', 'soyons', 'soyez', 'soient', 'été', 'étant'])],
   ['avoir', new Set(['ai', 'as', 'a', 'avons', 'avez', 'ont', 'avais', 'avait', 'avions', 'aviez', 'avaient', 'eus', 'eut', 'eûmes', 'eûtes', 'eurent', 'aurai', 'auras', 'aura', 'aurons', 'aurez', 'auront', 'aie', 'aies', 'ait', 'ayons', 'ayez', 'aient', 'eu', 'ayant'])],
   ['aller', new Set(['vais', 'vas', 'va', 'allons', 'allez', 'vont', 'allais', 'allait', 'allions', 'alliez', 'allaient', 'allai', 'allas', 'alla', 'allâmes', 'allâtes', 'allèrent', 'irai', 'iras', 'ira', 'irons', 'irez', 'iront', 'aille', 'ailles', 'aillions', 'ailliez', 'aillent', 'allé', 'allant'])],

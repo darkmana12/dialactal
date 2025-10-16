@@ -20,4 +20,5 @@ const GuessedWordsList = ({ guessHistory }: { guessHistory: string[] }) => {
     </div>
   );
 };
-window.WikiCherche.GuessedWordsList = GuessedWordsList;
+
+export default GuessedWordsList;

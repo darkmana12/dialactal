@@ -1,6 +1,7 @@
+import { normalizeWord } from '../utils/textProcessor';
+import type { ProcessedWord, GuessedWord } from '../types';
+
 const GameBoard = ({ content, title, guessedWords }: { content: ProcessedWord[], title: string, guessedWords: Map<string, GuessedWord> }) => {
-  const { normalizeWord } = window.WikiCherche;
-  
   return (
     <div className="text-lg leading-relaxed bg-white p-4 sm:p-6 rounded-2xl whitespace-pre-wrap border-2 border-brand-border h-full overflow-y-auto">
       {/* Title display */}
@@ -9,7 +10,6 @@ const GameBoard = ({ content, title, guessedWords }: { content: ProcessedWord[],
           {title.split(' ').map((word, index) => {
             const normalized = normalizeWord(word);
             const isFound = guessedWords.has(normalized) && guessedWords.get(normalized)?.found;
-
             if (isFound) {
               return (
                 <span key={index} className="text-2xl font-bold text-brand-primary animate-reveal-word rounded-sm px-0.5 -mx-0.5">
@@ -68,4 +68,5 @@ const GameBoard = ({ content, title, guessedWords }: { content: ProcessedWord[],
     </div>
   );
 };
-window.WikiCherche.GameBoard = GameBoard;
+
+export default GameBoard;

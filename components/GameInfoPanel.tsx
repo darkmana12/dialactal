@@ -1,3 +1,5 @@
+import type { GameState } from '../types';
+
 const GameInfoPanel = ({ 
   guessCount,
   onNewGame, 
@@ -35,4 +37,5 @@ const GameInfoPanel = ({
     </div>
   );
 };
-window.WikiCherche.GameInfoPanel = GameInfoPanel;
+
+export default GameInfoPanel;

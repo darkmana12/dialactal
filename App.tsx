@@ -1,25 +1,20 @@
-// Fix: Add React from window to scope to fix undefined error.
-const React = window.React;
+
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { fetchRandomArticle } from './services/wikipediaService';
+import { processArticleContent, normalizeWord } from './utils/textProcessor';
+import { verbConjugations } from './utils/verbConjugations';
+import { RELATED_WORDS_DB, SEMANTIC_CATEGORIES } from './constants';
+import GameBoard from './components/GameBoard';
+import GuessInput from './components/GuessInput';
+import GuessedWordsList from './components/GuessedWordsList';
+import GameInfoPanel from './components/GameInfoPanel';
+import LoadingSpinner from './components/LoadingSpinner';
+import WinModal from './components/WinModal';
+import ShootingGalleryGame from './components/ShootingGalleryGame';
+import type { GameState, ProcessedWord, GuessedWord } from './types';
 
 const App = () => {
-  const { useState, useEffect, useCallback, useMemo } = React;
-  const { 
-    fetchRandomArticle,
-    processArticleContent,
-    normalizeWord,
-    verbConjugations,
-    RELATED_WORDS_DB,
-    SEMANTIC_CATEGORIES,
-    GameBoard,
-    GuessInput,
-    GuessedWordsList,
-    GameInfoPanel,
-    LoadingSpinner,
-    WinModal,
-    ShootingGalleryGame
-  } = window.WikiCherche;
 
-  // Fix: Added explicit types for state variables for type safety and to fix property access errors.
   const [gameState, setGameState] = useState<GameState>('LOADING');
   const [articleTitle, setArticleTitle] = useState('');
   const [articleUrl, setArticleUrl] = useState('');
@@ -240,10 +235,11 @@ const App = () => {
     setGuessedWords(newGuessedWords);
     setProcessedContent(currentContent);
 
-    const allTitleWordsFound = titleWords.size > 0 && Array.from(titleWords).every(titleWord => {
-        const data = newGuessedWords.get(titleWord);
-        return !!data?.found;
-    });
+
+  const allTitleWordsFound = titleWords.size > 0 && Array.from(titleWords).every(titleWord => {
+    const data = newGuessedWords.get(String(titleWord));
+    return !!data?.found;
+  });
 
     if (allTitleWordsFound) {
         setIsModalOpen(true);
@@ -280,8 +276,10 @@ const App = () => {
       
       {gameState === 'LOADING' && (
         <div className="absolute inset-0 bg-brand-bg/90 backdrop-blur-sm z-50 flex flex-col items-center justify-center p-4">
-            <ShootingGalleryGame />
-            <LoadingSpinner message={loadingMessage} />
+          <div className="bg-white/90 rounded-xl p-8 shadow-lg flex flex-col items-center">
+            <h2 className="text-2xl font-bold text-brand-primary mb-4">Recherche d'une page Wikipédia...</h2>
+            <LoadingSpinner message={loadingMessage || "Chargement en cours..."} />
+          </div>
         </div>
       )}
       
@@ -331,4 +329,4 @@ const App = () => {
   );
 };
 
-window.WikiCherche.App = App;
+export default App;

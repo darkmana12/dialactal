@@ -14,4 +14,5 @@ const CloseIcon = () => (
     />
   </svg>
 );
-window.WikiCherche.CloseIcon = CloseIcon;
+
+export default CloseIcon;

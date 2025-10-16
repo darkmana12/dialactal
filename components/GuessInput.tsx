@@ -1,8 +1,6 @@
-// Fix: Add React from window to scope to fix undefined errors.
-const React = window.React;
+import React, { useState } from 'react';
 
 const GuessInput = ({ onGuess, disabled }: { onGuess: (guess: string) => void, disabled: boolean }) => {
-  const { useState } = React;
   const [inputValue, setInputValue] = useState('');
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -16,8 +14,8 @@ const GuessInput = ({ onGuess, disabled }: { onGuess: (guess: string) => void, d
   const getPlaceholderText = () => {
     if (disabled) return "Partie terminée !";
     return "Entrez votre mot";
-  }
-  
+  };
+
   return (
     <form onSubmit={handleSubmit} className="w-full lg:w-1/2 flex items-center gap-4">
       <input
@@ -39,4 +37,5 @@ const GuessInput = ({ onGuess, disabled }: { onGuess: (guess: string) => void, d
     </form>
   );
 };
-window.WikiCherche.GuessInput = GuessInput;
+
+export default GuessInput;

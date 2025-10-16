@@ -1,9 +1,6 @@
-// Fix: Add React from window to scope to fix undefined error.
-const React = window.React;
+import React, { useState, useEffect, useCallback } from 'react';
 
 const ShootingGalleryGame = () => {
-  const { useState, useEffect, useCallback } = React;
-  // Fix: Added type for component state.
   const [targets, setTargets] = useState<{ id: number; x: number; y: number }[]>([]);
   const [score, setScore] = useState(0);
 
@@ -25,7 +22,6 @@ const ShootingGalleryGame = () => {
     return () => clearInterval(spawnInterval);
   }, []);
 
-  // Fix: Added type for callback parameter.
   const handleTargetClick = useCallback((targetId: number) => {
     setTargets(prevTargets => prevTargets.filter(t => t.id !== targetId));
     setScore(prevScore => prevScore + 10);
@@ -56,4 +52,5 @@ const ShootingGalleryGame = () => {
     </div>
   );
 };
-window.WikiCherche.ShootingGalleryGame = ShootingGalleryGame;
+
+export default ShootingGalleryGame;

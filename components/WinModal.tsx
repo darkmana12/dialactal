@@ -1,6 +1,7 @@
+import type { GameState } from '../types';
+import CloseIcon from './icons/CloseIcon';
+
 const WinModal = ({ gameState, title, url, guessCount, onPlayAgain, onClose }: { gameState: GameState, title: string, url: string, guessCount: number, onPlayAgain: () => void, onClose: () => void }) => {
-  const { CloseIcon } = window.WikiCherche;
-  
   if (gameState !== 'WON' && gameState !== 'REVEALED') return null;
 
   const isWin = gameState === 'WON';
@@ -44,4 +45,5 @@ const WinModal = ({ gameState, title, url, guessCount, onPlayAgain, onClose }: {
     </div>
   );
 };
-window.WikiCherche.WinModal = WinModal;
+
+export default WinModal;

@@ -49,43 +49,12 @@
         }
       }
     </script>
-    <!-- Load React, ReactDOM, and Babel -->
-    <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
-    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-<script type="importmap">
-{
-  "imports": {
-    "react/": "https://aistudiocdn.com/react@^19.2.0/",
-    "react": "https://aistudiocdn.com/react@^19.2.0"
-  }
-}
-</script>
+    <!-- React et tout le JS sont désormais gérés par Vite/ESM -->
 </head>
   <body class="bg-brand-bg text-brand-primary font-sans">
     <div id="root"></div>
 
-    <!-- Initialize global namespace -->
-    <script>
-      window.WikiCherche = {};
-    </script>
 
-    <!-- Load App Scripts Sequentially. Babel will transpile them. -->
-    <script type="text/babel" data-presets="react,typescript" src="./types.ts"></script>
-    <script type="text/babel" data-presets="react,typescript" src="./constants.ts"></script>
-    <script type="text/babel" data-presets="react,typescript" src="./utils/verbConjugations.ts"></script>
-    <script type="text/babel" data-presets="react,typescript" src="./utils/textProcessor.ts"></script>
-    <script type="text/babel" data-presets="react,typescript" src="./services/wikipediaService.ts"></script>
-    <script type="text/babel" data-presets="react,typescript" src="./components/icons/CloseIcon.tsx"></script>
-    <script type="text/babel" data-presets="react,typescript" src="./components/LoadingSpinner.tsx"></script>
-    <script type="text/babel" data-presets="react,typescript" src="./components/ShootingGalleryGame.tsx"></script>
-    <script type="text/babel" data-presets="react,typescript" src="./components/GuessedWordsList.tsx"></script>
-    <script type="text/babel" data-presets="react,typescript" src="./components/GuessInput.tsx"></script>
-    <script type="text/babel" data-presets="react,typescript" src="./components/GameBoard.tsx"></script>
-    <script type="text/babel" data-presets="react,typescript" src="./components/GameInfoPanel.tsx"></script>
-    <script type="text/babel" data-presets="react,typescript" src="./components/WinModal.tsx"></script>
-    <script type="text/babel" data-presets="react,typescript" src="./App.tsx"></script>
-    <script type="text/babel" data-presets="react,typescript" src="./index.tsx"></script>
-
+      <script type="module" src="/index.tsx"></script>
   </body>
 </html>

@@ -17,7 +17,7 @@
 ## Developer Workflows
 - **Install:** `npm install`
 - **Run locally:** `npm run dev`
-- **API Key:** Set `GEMINI_API_KEY` in `.env.local` for Wikipedia/AI features.
+ - No API keys required for core gameplay. The app uses public Wikipedia endpoints.
 - **Build:** `npm run build`
 - **No explicit test suite** (as of Oct 2025) — add tests in `__tests__/` if needed.
 

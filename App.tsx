@@ -1,7 +1,7 @@
 
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { fetchRandomArticle } from './services/wikipediaService';
-import { processArticleContent, normalizeWord } from './utils/textProcessor';
+import { processArticleContent, normalizeWord, generateMorphoVariants, levenshtein } from './utils/textProcessor';
 import { verbConjugations } from './utils/verbConjugations';
 import { RELATED_WORDS_DB, SEMANTIC_CATEGORIES } from './constants';
 import GameBoard from './components/GameBoard';
@@ -9,8 +9,8 @@ import GuessInput from './components/GuessInput';
 import GuessedWordsList from './components/GuessedWordsList';
 import GameInfoPanel from './components/GameInfoPanel';
 import LoadingSpinner from './components/LoadingSpinner';
+import PopBubbles from './components/minigames/PopBubbles';
 import WinModal from './components/WinModal';
-import ShootingGalleryGame from './components/ShootingGalleryGame';
 import type { GameState, ProcessedWord, GuessedWord } from './types';
 
 const App = () => {
@@ -26,7 +26,8 @@ const App = () => {
   const [relatedWordsMap, setRelatedWordsMap] = useState(new Map<string, string>());
   const [categoryMap, setCategoryMap] = useState(new Map<string, Set<string>>());
   const [loadingMessage, setLoadingMessage] = useState('');
-  const [totalUniqueWords, setTotalUniqueWords] = useState(0);
+  // removed totalUniqueWords state (was unused)
+  const [hiddenUniqueWords, setHiddenUniqueWords] = useState<string[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(true);
   
   const startNewGame = useCallback(async () => {
@@ -61,21 +62,31 @@ const App = () => {
                 .filter(w => w.hidden && !w.isPunctuation)
                 .map(w => normalizeWord(w.original))
         ));
-        setTotalUniqueWords(hiddenWordsArray.length);
+  setHiddenUniqueWords(hiddenWordsArray);
+        const hiddenWordsSet = new Set(hiddenWordsArray);
 
-        const newRelatedWordsMap = new Map();
+        // Normalize static related words DB against normalized hidden words
+        const newRelatedWordsMap = new Map<string, string>();
         for (const clue in RELATED_WORDS_DB) {
             const target = RELATED_WORDS_DB[clue];
-            if (hiddenWordsArray.includes(target)) {
-                newRelatedWordsMap.set(normalizeWord(clue), target);
+            const normClue = normalizeWord(clue);
+            const normTarget = normalizeWord(target);
+            if (hiddenWordsSet.has(normTarget)) {
+                newRelatedWordsMap.set(normClue, normTarget);
             }
         }
         setRelatedWordsMap(newRelatedWordsMap);
 
+        // Normalize semantic categories: both key and set items
         const newCategoryMap = new Map<string, Set<string>>();
-        for (const category of SEMANTIC_CATEGORIES) {
-          for (const word of category) {
-            newCategoryMap.set(word, category);
+        for (const rawCategory of SEMANTIC_CATEGORIES) {
+          const normalizedCategory = new Set<string>();
+          for (const w of rawCategory) {
+            const nw = normalizeWord(w);
+            if (nw) normalizedCategory.add(nw);
+          }
+          for (const nw of normalizedCategory) {
+            newCategoryMap.set(nw, normalizedCategory);
           }
         }
         setCategoryMap(newCategoryMap);
@@ -106,16 +117,7 @@ const App = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   
-  const foundWordsCount = useMemo(() => {
-    // Fix: Rewrote to use a for...of loop to avoid a type inference issue where 'w.found' was not accessible.
-    let count = 0;
-    for (const word of guessedWords.values()) {
-        if (word.found) {
-            count++;
-        }
-    }
-    return count;
-  }, [guessedWords]);
+  // foundWordsCount was unused; removed to tidy code
 
   // Fix: Added type for the 'guess' parameter.
   const handleGuess = (guess: string) => {
@@ -136,23 +138,12 @@ const App = () => {
     let currentContent = [...processedContent];
     let wordFound = false;
 
-    const wordsToRevealDirectly = new Set([normalizedGuess]);
-    
-    if (normalizedGuess.endsWith('s') && normalizedGuess.length > 1) {
-      wordsToRevealDirectly.add(normalizedGuess.slice(0, -1));
-    }
-    
-    wordsToRevealDirectly.add(normalizedGuess + 's');
-
-    if (normalizedGuess.endsWith('al') && normalizedGuess.length > 2) {
-        wordsToRevealDirectly.add(normalizedGuess.slice(0, -2) + 'aux');
-    } else if ((normalizedGuess.endsWith('au') || normalizedGuess.endsWith('eu')) && normalizedGuess.length > 2) {
-        wordsToRevealDirectly.add(normalizedGuess + 'x');
-    }
+    // Build reveal set with morphological variants
+    const wordsToRevealDirectly = generateMorphoVariants(normalizedGuess);
 
     const conjugations = verbConjugations.get(normalizedGuess);
     if (conjugations) {
-      conjugations.forEach((conj: string) => wordsToRevealDirectly.add(conj));
+      conjugations.forEach((conj: string) => wordsToRevealDirectly.add(normalizeWord(conj)));
     }
 
     let directMatchCount = 0;
@@ -185,43 +176,80 @@ const App = () => {
         const guessAsNumber = parseInt(normalizedGuess, 10);
         const isNumericGuess = !isNaN(guessAsNumber) && /^\d+$/.test(normalizedGuess);
 
-        if (isNumericGuess) {
-            let madeUpdate = false;
-            currentContent = currentContent.map((word) => {
-                const originalAsNumber = parseInt(word.original, 10);
-                if ((word.hidden || word.isCloseGuess) && !isNaN(originalAsNumber)) {
-                    const distance = Math.abs(originalAsNumber - guessAsNumber);
-                    if (word.closestGuessDistance === undefined || distance < word.closestGuessDistance) {
-                        madeUpdate = true;
-                        return { ...word, hidden: false, isCloseGuess: true, displayAs: trimmedGuess, closestGuessDistance: distance };
-                    }
-                }
-                return word;
-            });
-            if (madeUpdate) wasCloseGuess = true;
-        } else {
+    if (isNumericGuess) {
+      // Show a hint chip for the closest number without revealing the original number
+      let madeUpdate = false;
+      currentContent = currentContent.map((word) => {
+        const originalAsNumber = parseInt(word.original, 10);
+        if ((word.hidden || word.isCloseGuess) && !isNaN(originalAsNumber)) {
+          const distance = Math.abs(originalAsNumber - guessAsNumber);
+          if (word.closestGuessDistance === undefined || distance < word.closestGuessDistance) {
+            madeUpdate = true;
+            return { ...word, hidden: false, isCloseGuess: true, displayAs: trimmedGuess, closestGuessDistance: distance };
+          }
+        }
+        return word;
+      });
+      if (madeUpdate) wasCloseGuess = true;
+    } else {
             const relatedTo = relatedWordsMap.get(normalizedGuess);
             const category = categoryMap.get(normalizedGuess);
             let foundStaticRelation = false;
 
-            if (relatedTo || category) {
-                currentContent = currentContent.map((word) => {
-                    if (word.hidden) {
-                        const normalizedOriginal = normalizeWord(word.original);
-                        const isRelated = relatedTo && normalizedOriginal === relatedTo;
-                        const inCategory = category && category.has(normalizedOriginal);
-                        if (isRelated || inCategory) {
-                            foundStaticRelation = true;
-                            return { ...word, hidden: false, isCloseGuess: true, displayAs: trimmedGuess };
-                        }
-                    }
-                    return word;
-                });
+      if (relatedTo || category) {
+        currentContent = currentContent.map((word) => {
+          if (word.hidden) {
+            const normalizedOriginal = normalizeWord(word.original);
+            const isRelated = relatedTo && normalizedOriginal === relatedTo;
+            const inCategory = category && category.has(normalizedOriginal);
+            if (isRelated || inCategory) {
+              foundStaticRelation = true;
+              // Render as a yellow hint chip using displayAs; do not show the original token
+              return { ...word, hidden: false, isCloseGuess: true, displayAs: trimmedGuess };
             }
+          }
+          return word;
+        });
+      }
 
             if (foundStaticRelation) {
                 wasCloseGuess = true;
             }
+
+      // Typo proximity: only for guesses with length >= 3 to avoid noisy matches (e.g., 'e' -> 'en')
+      if (!wordFound && !foundStaticRelation && !isNumericGuess && normalizedGuess.length >= 3) {
+        let bestTarget: string | null = null;
+        let bestDistance = Infinity;
+        for (const target of hiddenUniqueWords) {
+          if (target.length < 3) continue; // ignore very short hidden words
+          // quick length filter
+          const dl = Math.abs(target.length - normalizedGuess.length);
+          if (dl > 2) continue;
+          const d = levenshtein(normalizeWord(target), normalizedGuess);
+          if (d < bestDistance) {
+            bestDistance = d;
+            bestTarget = target;
+            if (d === 0) break;
+          }
+        }
+        const threshold = normalizedGuess.length <= 4 ? 1 : 2;
+        if (bestTarget && bestDistance > 0 && bestDistance <= threshold) {
+          // Show a single hint chip for the closest target occurrence
+          let shown = false;
+          currentContent = currentContent.map((word) => {
+            if (shown) return word;
+            if (word.hidden) {
+              const n = normalizeWord(word.original);
+              if (n === bestTarget) {
+                shown = true;
+                return { ...word, hidden: false, isCloseGuess: true, displayAs: trimmedGuess };
+              }
+            }
+            return word;
+          });
+          if (shown) wasCloseGuess = true;
+        }
+      }
         }
         
         newGuessedWords.set(normalizedGuess, { 
@@ -276,9 +304,10 @@ const App = () => {
       
       {gameState === 'LOADING' && (
         <div className="absolute inset-0 bg-brand-bg/90 backdrop-blur-sm z-50 flex flex-col items-center justify-center p-4">
-          <div className="bg-white/90 rounded-xl p-8 shadow-lg flex flex-col items-center">
-            <h2 className="text-2xl font-bold text-brand-primary mb-4">Recherche d'une page Wikipédia...</h2>
+          <div className="bg-white/90 rounded-xl p-8 shadow-lg flex flex-col items-center gap-6 max-w-3xl w-full">
+            <h2 className="text-2xl font-bold text-brand-primary">Recherche d'une page Wikipédia...</h2>
             <LoadingSpinner message={loadingMessage || "Chargement en cours..."} />
+            <PopBubbles />
           </div>
         </div>
       )}

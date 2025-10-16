@@ -18,4 +18,4 @@ View your app in AI Studio: https://ai.studio/apps/drive/1G2CW-SabgcaSuAySN4xpK_
 2. Run the app:
    `npm run dev`
 
-**Note:** La clé `GEMINI_API_KEY` n'est plus nécessaire pour lancer le jeu en mode basique (deviner la page Wikipedia). Certaines fonctionnalités avancées d'IA peuvent rester inaccessibles sans clé.
+**Note:** Aucune clé d'API n'est nécessaire pour lancer le jeu. Le contenu provient uniquement de Wikipédia (APIs publiques) et fonctionne tel quel en local.

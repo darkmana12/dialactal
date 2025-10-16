@@ -50,9 +50,9 @@ const GameBoard = ({ content, title, guessedWords }: { content: ProcessedWord[],
           }
           if (word.isCloseGuess && word.displayAs) {
             return (
-               <span 
-                key={index} 
-                className="inline-block bg-yellow-300/80 text-yellow-900 italic font-semibold text-sm rounded-sm px-1 mx-px align-baseline"
+              <span
+                key={index}
+                className="inline-block bg-brand-hidden-word text-gray-600 italic rounded-sm px-0.5 -mx-0.5 align-baseline"
               >
                 {word.displayAs}
               </span>

@@ -1,4 +1,3 @@
-import type { GameState } from '../types';
 
 const GameInfoPanel = ({ 
   guessCount,

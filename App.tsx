@@ -3,7 +3,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { fetchRandomArticle } from './services/wikipediaService';
 import { processArticleContent, normalizeWord, generateMorphoVariants, levenshtein } from './utils/textProcessor';
 import { verbConjugations } from './utils/verbConjugations';
-import { RELATED_WORDS_DB, SEMANTIC_CATEGORIES } from './constants';
+import { RELATED_WORDS_DB, SEMANTIC_CATEGORIES, NO_MORPH_REVEAL_WORDS } from './constants';
 import GameBoard from './components/GameBoard';
 import GuessInput from './components/GuessInput';
 import GuessedWordsList from './components/GuessedWordsList';
@@ -12,6 +12,9 @@ import LoadingSpinner from './components/LoadingSpinner';
 import PopBubbles from './components/minigames/PopBubbles';
 import WinModal from './components/WinModal';
 import type { GameState, ProcessedWord, GuessedWord } from './types';
+
+// Guard to prevent startNewGame from running twice in development due to React StrictMode remounts
+let didInit = false;
 
 const App = () => {
 
@@ -113,7 +116,10 @@ const App = () => {
   }, []);
 
   useEffect(() => {
-    startNewGame();
+    if (!didInit) {
+      didInit = true;
+      startNewGame();
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   
@@ -147,10 +153,12 @@ const App = () => {
     }
 
     let directMatchCount = 0;
-    const tempContent = currentContent.map((word) => {
+  const tempContent = currentContent.map((word) => {
         const normalizedOriginal = normalizeWord(word.original);
         const isRevealable = word.hidden || word.isCloseGuess;
-        if (isRevealable && wordsToRevealDirectly.has(normalizedOriginal)) {
+    // Prevent revealing certain function words (e.g., 'ne') via morphological/normalized matches unless exact typed
+    const blockedByMorphRule = NO_MORPH_REVEAL_WORDS.has(normalizedOriginal) && word.original !== trimmedGuess;
+    if (isRevealable && !blockedByMorphRule && wordsToRevealDirectly.has(normalizedOriginal)) {
             wordFound = true;
             directMatchCount++;
             return { ...word, hidden: false, isCloseGuess: false, displayAs: undefined, closestGuessDistance: undefined };

@@ -288,3 +288,6 @@ export const SEMANTIC_CATEGORIES: Set<string>[] = [
   new Set(['joie', 'tristesse', 'colère', 'peur', 'surprise', 'dégoût', 'amour', 'haine', 'bonheur', 'anxiété', 'jalousie', 'confiance', 'espoir']),
   new Set(['père', 'mère', 'fils', 'fille', 'frère', 'sœur', 'oncle', 'tante', 'cousin', 'cousine', 'grand-père', 'grand-mère']),
 ];
+
+// Words that should not be revealed due to morphological/normalized equivalence unless guessed exactly (accent-sensitive)
+export const NO_MORPH_REVEAL_WORDS = new Set<string>(['ne']);

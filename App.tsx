@@ -14,6 +14,8 @@ import WinModal from './components/WinModal';
 import type { GameState, ProcessedWord, GuessedWord } from './types';
 import CoopPanel from './components/CoopPanel';
 import ThemeToggle from './components/ThemeToggle';
+import FadeSlide from './components/transitions/FadeSlide';
+import FadeScale from './components/transitions/FadeScale';
 import CelebrationOverlay from './components/CelebrationOverlay';
 import { WebSocketSyncService, type CoopEvent } from './services/wsSyncService';
 import { parseNumericToken, romanToInt, isRomanToken, isArabicToken } from './utils/roman';
@@ -38,6 +40,8 @@ const App = () => {
   // removed totalUniqueWords state (was unused)
   const [hiddenUniqueWords, setHiddenUniqueWords] = useState<string[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(true);
+  // Gate main content display to avoid crossfade artifacts under translucent overlay
+  const [showMain, setShowMain] = useState(false);
 
   // Coop state
   // Default WebSocket URL (local dev server); can be made configurable
@@ -164,6 +168,20 @@ const App = () => {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Sequence: hide main during LOADING; show immediately after loading (no overlay fade)
+  useEffect(() => {
+    if (gameState === 'LOADING') {
+      setShowMain(false);
+      document.body.classList.add('no-pattern');
+      return;
+    }
+    if (gameState === 'PLAYING' || gameState === 'WON' || gameState === 'REVEALED') {
+      setShowMain(true);
+      const tb = setTimeout(() => document.body.classList.remove('no-pattern'), 50);
+      return () => { clearTimeout(tb); };
+    }
+  }, [gameState]);
   
   // foundWordsCount was unused; removed to tidy code
 
@@ -515,17 +533,17 @@ const App = () => {
 
   return (
     <div className="relative min-h-screen">
-      {/* Top bar with theme toggle */}
-      <div className="w-full flex items-center justify-end px-4 py-3">
+      {/* Top bar with theme toggle (hidden while overlay is active) */}
+      <div className={`w-full flex items-center justify-end px-4 py-3 ${!showMain ? 'opacity-0 pointer-events-none select-none' : ''}`}>
         <ThemeToggle />
       </div>
       
       {gameState === 'LOADING' && (
-        <div className="absolute inset-0 bg-[var(--color-overlay)] backdrop-blur-sm z-50 flex flex-col items-center justify-center p-4">
+        <div className="fixed inset-0 bg-[var(--color-overlay-opaque)] z-[100] flex flex-col items-center justify-center p-4">
           <div className="bg-brand-panel rounded-xl p-8 shadow-lg flex flex-col items-center gap-6 max-w-3xl w-full">
             <h2 className="text-2xl font-bold text-brand-primary">Recherche d'une page Wikipédia...</h2>
             <LoadingSpinner message={loadingMessage || "Chargement en cours..."} />
-            <PopBubbles />
+            <PopBubbles active={true} />
           </div>
         </div>
       )}
@@ -536,7 +554,7 @@ const App = () => {
         </div>
       )}
 
-      {(gameState === 'PLAYING' || gameState === 'WON' || gameState === 'REVEALED') && (
+      <FadeSlide show={showMain} offsetY={0} durationMs={420} enterDelayMs={0}>
         <div className="min-h-screen p-4 sm:p-6 lg:p-8 grid grid-cols-1 lg:grid-cols-4 gap-6 items-start">
           <aside className="lg:col-span-1 flex flex-col gap-6">
             <GameInfoPanel
@@ -570,18 +588,20 @@ const App = () => {
             />
           </main>
         </div>
-      )}
+      </FadeSlide>
 
-      {(gameState === 'WON' || gameState === 'REVEALED') && isModalOpen && (
-        <WinModal
-          gameState={gameState}
-          title={articleTitle}
-          url={articleUrl}
-          guessCount={guessCount}
-          onPlayAgain={startNewGame}
-          onClose={handleCloseModal}
-        />
-      )}
+  <FadeScale show={(gameState === 'WON' || gameState === 'REVEALED') && isModalOpen} durationMs={800} startScale={1}>
+        {(gameState === 'WON' || gameState === 'REVEALED') && isModalOpen && (
+          <WinModal
+            gameState={gameState}
+            title={articleTitle}
+            url={articleUrl}
+            guessCount={guessCount}
+            onPlayAgain={startNewGame}
+            onClose={handleCloseModal}
+          />
+        )}
+      </FadeScale>
 
   {/* Celebration overlay shown on win */}
   {gameState === 'WON' && <CelebrationOverlay intensity="festive" />}

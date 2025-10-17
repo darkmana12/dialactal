@@ -12,18 +12,19 @@ const randomIn = (min: number, max: number) => Math.random() * (max - min) + min
 
 const CONTAINER_HEIGHT = 320; // increased height for more vertical play space
 
-const PopBubbles = ({ maxBubbles = 18 }: { maxBubbles?: number }) => {
+const PopBubbles = ({ maxBubbles = 18, active = true }: { maxBubbles?: number; active?: boolean }) => {
   const [bubbles, setBubbles] = useState<Bubble[]>([]);
   const [score, setScore] = useState(0);
   const spawnRef = useRef<number | null>(null);
 
-  // Spawn loop
+  // Spawn loop controlled by `active`
   useEffect(() => {
     const spawn = () => {
       setBubbles(prev => {
+        if (!active) return prev;
         if (prev.length >= maxBubbles) return prev;
         const size = randomIn(22, 46);
-  const duration = randomIn(3200, 6200); // slower, longer lifespan
+        const duration = randomIn(3200, 6200); // slower, longer lifespan
         const left = randomIn(4, 96);
         const hue = randomIn(0, 360);
         const bubble: Bubble = {
@@ -37,12 +38,21 @@ const PopBubbles = ({ maxBubbles = 18 }: { maxBubbles?: number }) => {
       });
     };
 
-    spawn();
-    spawnRef.current = window.setInterval(spawn, 450); // spawn a bit more frequently
+    if (active) {
+      spawn();
+      spawnRef.current = window.setInterval(spawn, 450);
+    } else {
+      // Immediately stop spawning and clear existing bubbles
+      if (spawnRef.current) window.clearInterval(spawnRef.current);
+      spawnRef.current = null;
+      setBubbles([]);
+    }
+
     return () => {
       if (spawnRef.current) window.clearInterval(spawnRef.current);
+      spawnRef.current = null;
     };
-  }, [maxBubbles]);
+  }, [active, maxBubbles]);
 
   const handlePop = (id: number) => {
     setBubbles(prev => prev.filter(b => b.id !== id));

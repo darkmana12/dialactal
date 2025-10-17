@@ -16,6 +16,7 @@ import CoopPanel from './components/CoopPanel';
 import ThemeToggle from './components/ThemeToggle';
 import CelebrationOverlay from './components/CelebrationOverlay';
 import { WebSocketSyncService, type CoopEvent } from './services/wsSyncService';
+import { parseNumericToken, romanToInt, isRomanToken, isArabicToken } from './utils/roman';
 
 // Guard to prevent startNewGame from running twice in development due to React StrictMode remounts
 let didInit = false;
@@ -222,16 +223,33 @@ const App = () => {
     } else {
         let wasCloseGuess = false;
         
-        const guessAsNumber = parseInt(normalizedGuess, 10);
-        const isNumericGuess = !isNaN(guessAsNumber) && /^\d+$/.test(normalizedGuess);
+  const parsedGuess = parseNumericToken(normalizedGuess);
+  const guessIsRoman = isRomanToken(trimmedGuess);
+  const guessIsArabic = isArabicToken(normalizedGuess);
+  const isNumericGuess = parsedGuess !== null && (guessIsRoman || guessIsArabic);
 
     if (isNumericGuess) {
       // Show a hint chip for the closest number without revealing the original number
       let madeUpdate = false;
       currentContent = currentContent.map((word) => {
-        const originalAsNumber = parseInt(word.original, 10);
-        if ((word.hidden || word.isCloseGuess) && !isNaN(originalAsNumber)) {
-          const distance = Math.abs(originalAsNumber - guessAsNumber);
+        // Article numeric parsing rules:
+        // - Decimal: if token is strictly digits
+        // - Roman: only if the ORIGINAL token is strictly uppercase Roman (I,V,X,L,C,D,M)
+        let originalAsNumber: number | null = null;
+        const original = word.original;
+        const norm = normalizeWord(original);
+        const tokenIsArabic = /^\d+$/.test(norm);
+        const tokenIsRoman = /^[IVXLCDM]+$/.test(original);
+        // Enforce type match: roman<->roman, arabic<->arabic only
+        if (guessIsArabic && tokenIsArabic) {
+          const n = parseInt(norm, 10);
+          originalAsNumber = isNaN(n) ? null : n;
+        } else if (guessIsRoman && tokenIsRoman) {
+          // Uppercase Roman only; avoid matching single lowercase 'i' in normal words
+          originalAsNumber = romanToInt(original);
+        }
+        if ((word.hidden || word.isCloseGuess) && originalAsNumber !== null && parsedGuess !== null) {
+          const distance = Math.abs(originalAsNumber - parsedGuess);
           if (word.closestGuessDistance === undefined || distance < word.closestGuessDistance) {
             madeUpdate = true;
             return { ...word, hidden: false, isCloseGuess: true, displayAs: trimmedGuess, closestGuessDistance: distance };
@@ -323,17 +341,17 @@ const App = () => {
     return !!data?.found;
   });
 
-    if (allTitleWordsFound) {
-        setIsModalOpen(true);
-        setGameState('WON');
-        const finalContent = currentContent.map((word) => {
-            if (word.hidden && titleWords.has(normalizeWord(word.original))) {
-                return { ...word, hidden: false, isCloseGuess: false };
-            }
-            return word;
-        });
-        setProcessedContent(finalContent);
-    }
+  if (allTitleWordsFound) {
+    // On win, reveal the entire article content so player can read it fully
+    const finalContent = currentContent.map((word) => ({
+      ...word,
+      hidden: false,
+      isCloseGuess: false,
+    }));
+    setProcessedContent(finalContent);
+    setIsModalOpen(true);
+    setGameState('WON');
+  }
   };
   // Keep ref pointing to latest handleGuess implementation
   useEffect(() => { handleGuessRef.current = handleGuess; });

@@ -13,6 +13,7 @@ import PopBubbles from './components/minigames/PopBubbles';
 import WinModal from './components/WinModal';
 import type { GameState, ProcessedWord, GuessedWord } from './types';
 import CoopPanel from './components/CoopPanel';
+import ThemeToggle from './components/ThemeToggle';
 import { WebSocketSyncService, type CoopEvent } from './services/wsSyncService';
 
 // Guard to prevent startNewGame from running twice in development due to React StrictMode remounts
@@ -495,10 +496,14 @@ const App = () => {
 
   return (
     <div className="relative min-h-screen">
+      {/* Top bar with theme toggle */}
+      <div className="w-full flex items-center justify-end px-4 py-3">
+        <ThemeToggle />
+      </div>
       
       {gameState === 'LOADING' && (
-        <div className="absolute inset-0 bg-brand-bg/90 backdrop-blur-sm z-50 flex flex-col items-center justify-center p-4">
-          <div className="bg-white/90 rounded-xl p-8 shadow-lg flex flex-col items-center gap-6 max-w-3xl w-full">
+        <div className="absolute inset-0 bg-[var(--color-overlay)] backdrop-blur-sm z-50 flex flex-col items-center justify-center p-4">
+          <div className="bg-brand-panel rounded-xl p-8 shadow-lg flex flex-col items-center gap-6 max-w-3xl w-full">
             <h2 className="text-2xl font-bold text-brand-primary">Recherche d'une page Wikipédia...</h2>
             <LoadingSpinner message={loadingMessage || "Chargement en cours..."} />
             <PopBubbles />

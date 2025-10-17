@@ -1,7 +1,7 @@
 const GuessedWordsList = ({ guessHistory }: { guessHistory: string[] }) => {
   return (
-    <div className="bg-white p-4 rounded-2xl border-2 border-brand-border h-[45vh] flex flex-col">
-      <h3 className="font-bold text-lg mb-4 text-brand-primary">Mots Essayés</h3>
+    <div className="bg-white text-[#111827] p-4 rounded-2xl border-2 border-brand-border h-[45vh] flex flex-col">
+      <h3 className="font-bold text-lg mb-4">Mots Essayés</h3>
       <div className="overflow-y-auto flex-grow">
         <div className="flex flex-col items-start gap-1">
           {guessHistory.map((word, index) => (

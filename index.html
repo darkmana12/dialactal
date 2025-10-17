@@ -3,29 +3,78 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>WikiCherche - Le jeu de mots Wikipedia</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+  <title>WikiCherche - Le jeu de mots Wikipedia</title>
+  <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&display=swap" rel="stylesheet">
     <style>
+      /* Theme variables */
+      :root {
+        /* Light theme (default) */
+        --color-bg: #f7fafc; /* slate-50-ish */
+        --color-text: #0f172a; /* slate-900 */
+        --color-border: #cbd5e1; /* slate-300 */
+        --color-secondary: #ffffff; /* panels */
+        --color-panel: rgba(255,255,255,0.92);
+        --color-overlay: rgba(15,23,42,0.75);
+        --color-accent-red: #F3684A;
+        --color-text-placeholder: #6b7280; /* gray-500 */
+        --color-hidden-word: #6b7280; /* gray-500 */
+      }
+      :root[data-theme='dark'] {
+        --color-bg: #0b1220; /* very dark slate */
+        --color-text: #e5e7eb; /* gray-200 */
+        --color-border: #334155; /* slate-700 */
+        --color-secondary: #111827; /* slate-900 panel */
+        --color-panel: rgba(17,24,39,0.92);
+        --color-overlay: rgba(2,6,23,0.85);
+        --color-accent-red: #F3684A;
+        --color-text-placeholder: #94a3b8; /* slate-400 */
+        --color-hidden-word: #9ca3af; /* gray-400 */
+      }
+
+      /* Background pattern tuned per theme (lighter on light mode) */
       body {
-         background-color: #1E293B;
-         background-image: url("data:image/svg+xml,%3Csvg width='20' height='20' viewBox='0 0 20 20' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23334155' fill-opacity='0.4' fill-rule='evenodd'%3E%3Cpath d='M9 2h2v16H9V2zm-7 7h16v2H2v-2z'/%3E%3C/g%3E%3C/svg%3E");
+        background-color: var(--color-bg);
+        /* Light theme: very subtle pattern */
+        background-image: url("data:image/svg+xml,%3Csvg width='20' height='20' viewBox='0 0 20 20' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23e5e7eb' fill-opacity='0.15' fill-rule='evenodd'%3E%3Cpath d='M9 2h2v16H9V2zm-7 7h16v2H2v-2z'/%3E%3C/g%3E%3C/svg%3E");
+      }
+      :root[data-theme='dark'] body {
+        /* Dark theme: slightly stronger but still subtle */
+        background-image: url("data:image/svg+xml,%3Csvg width='20' height='20' viewBox='0 0 20 20' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23334155' fill-opacity='0.22' fill-rule='evenodd'%3E%3Cpath d='M9 2h2v16H9V2zm-7 7h16v2H2v-2z'/%3E%3C/g%3E%3C/svg%3E");
       }
     </style>
     <script>
+      // Prevent flash of wrong theme: set theme before the app mounts
+      (function() {
+        try {
+          var saved = localStorage.getItem('theme');
+          // Default to dark if nothing saved; ignore system preference on first visit
+          var theme = saved || 'dark';
+          document.documentElement.dataset.theme = theme;
+          if (theme === 'dark') {
+            document.documentElement.classList.add('dark');
+          } else {
+            document.documentElement.classList.remove('dark');
+          }
+        } catch (e) { /* no-op */ }
+      })();
+    </script>
+    <script>
       tailwind.config = {
+        darkMode: 'class',
         theme: {
           extend: {
             colors: {
-              'brand-bg': '#1E293B',
-              'brand-primary': '#212121',
-              'brand-border': '#64748B',
-              'brand-secondary': '#F1F1F1',
-              'brand-accent-red': '#F3684A',
-              'brand-text-placeholder': '#A9A9A9',
-              'brand-hidden-word': '#D1D5DB', // gray-300
+              'brand-bg': 'var(--color-bg)',
+              'brand-primary': 'var(--color-text)',
+              'brand-border': 'var(--color-border)',
+              'brand-secondary': 'var(--color-secondary)',
+              'brand-panel': 'var(--color-panel)',
+              'brand-accent-red': 'var(--color-accent-red)',
+              'brand-text-placeholder': 'var(--color-text-placeholder)',
+              'brand-hidden-word': 'var(--color-hidden-word)', // gray adaptable
             },
             fontFamily: {
               sans: ['Poppins', 'sans-serif'],

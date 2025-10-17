@@ -13,24 +13,24 @@ const WinModal = ({ gameState, title, url, guessCount, onPlayAgain, onClose }: {
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="relative bg-white rounded-2xl p-6 sm:p-8 max-w-md w-full text-center border-2 border-brand-border">
+      <div className="relative bg-white text-black rounded-2xl p-6 sm:p-8 max-w-md w-full text-center border-2 border-brand-border">
         <button
           onClick={onClose}
-          className="absolute top-2 right-2 p-2 rounded-full text-gray-500 hover:bg-gray-200 focus:outline-none"
+          className="absolute top-2 right-2 p-2 rounded-full text-black hover:bg-gray-200 focus:outline-none"
           aria-label="Fermer"
         >
           <CloseIcon />
         </button>
         <h2 className={`text-3xl font-bold mb-2 ${headerColor}`}>{headerText}</h2>
-        <p className="text-lg text-brand-primary/80 mb-4">{message}</p>
-        <div className="bg-brand-secondary/50 p-4 rounded-lg border border-brand-primary/50 mb-6">
-          <p className="text-sm text-gray-600">L'article était :</p>
-          <h3 className="text-2xl font-semibold text-brand-primary my-1">{title}</h3>
+        <p className="text-lg mb-4">{message}</p>
+        <div className="bg-white p-4 rounded-lg border border-gray-300 mb-6 text-left">
+          <p className="text-sm">L'article était :</p>
+          <h3 className="text-2xl font-semibold my-1">{title}</h3>
           <a
             href={url}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-gray-700 hover:underline"
+            className="hover:underline"
           >
             Lire sur Wikipédia &rarr;
           </a>

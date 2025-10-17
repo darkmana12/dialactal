@@ -24,7 +24,7 @@ const GuessInput = ({ onGuess, disabled }: { onGuess: (guess: string) => void, d
         onChange={(e) => setInputValue(e.target.value)}
         disabled={disabled}
         placeholder={getPlaceholderText()}
-        className="flex-grow w-full p-3 text-lg bg-white border-2 border-brand-border rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-shadow disabled:opacity-70 placeholder:text-brand-text-placeholder"
+        className="flex-grow w-full p-3 text-lg bg-white text-black dark:text-black dark:bg-white border-2 border-brand-border rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-shadow disabled:opacity-70 placeholder:text-brand-text-placeholder"
         aria-label="Devinez un mot"
       />
       <button

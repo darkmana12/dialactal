@@ -14,6 +14,7 @@ import WinModal from './components/WinModal';
 import type { GameState, ProcessedWord, GuessedWord } from './types';
 import CoopPanel from './components/CoopPanel';
 import ThemeToggle from './components/ThemeToggle';
+import CelebrationOverlay from './components/CelebrationOverlay';
 import { WebSocketSyncService, type CoopEvent } from './services/wsSyncService';
 
 // Guard to prevent startNewGame from running twice in development due to React StrictMode remounts
@@ -563,6 +564,9 @@ const App = () => {
           onClose={handleCloseModal}
         />
       )}
+
+  {/* Celebration overlay shown on win */}
+  {gameState === 'WON' && <CelebrationOverlay intensity="festive" />}
     </div>
   );
 };
